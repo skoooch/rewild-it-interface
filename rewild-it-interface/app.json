@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "rewild-it",
+    "slug": "rewild-it",
+    "version": "1.0.0",
+    "extra": {
+      "eas": {
+        "projectId": "e37bcd85-3b8c-484b-978e-3aa1c818cc2b"
+      }
+    },
+    "owner": "skoooch",
+    "android": {
+            "package": "com.company",
+            "config": {
+                "googleMaps": {
+                    "apiKey": "AIzaSyA8YIQuUALtt8RvyCRFQUqcDV-Q9HxWbcU"
+                }
+            }
+        },
+        "ios": {
+            "bundleIdentifier": "com.company",
+            "config": {
+                "googleMapsApiKey": "AIzaSyA8YIQuUALtt8RvyCRFQUqcDV-Q9HxWbcU"
+            }
+        }
+  },
+  "name": "rewild-it"
+}
