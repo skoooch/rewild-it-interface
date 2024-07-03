@@ -1,4 +1,3 @@
-import 'react-native-reanimated';
 import React, { useEffect, useRef, useState } from 'react';
 import MapView from 'react-native-maps';
 import { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps';
@@ -7,12 +6,12 @@ import {
   StyleSheet,
   Pressable,
   View,
+  Image,
   Region,
   Button,
   Text,
 } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import Animated from 'react-native-reanimated';
 
 const Stack = createNativeStackNavigator();
 
@@ -74,8 +73,47 @@ export default function Map({ navigation }) {
             coordinate={marker}
             onPress={() => onMarkerPress(marker)}>
             <Callout>
-              <View style={{ padding: 100 }}>
-                
+              <View
+                style={{
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '100%',
+                }}>
+                <Text
+                  style={{
+                    fontWeight: 'bold',
+                    fontSize: 20,
+                    paddingBottom: 10,
+                  }}>
+                  Example Project
+                </Text>
+                <View style={{ paddingBottom:10, alignSelf: 'flex-start' }}>
+                  <Image
+                    style={{
+                      resizeMode: 'contain',
+                      borderRadius: 10,
+                      paddingBottom: 10,
+                    }}
+                    source={require('../assets/test_image.jpg')}
+                  />
+                </View>
+                <Pressable
+                  style={{
+                    borderRadius: 5,
+                    padding: 5,
+                    backgroundColor: '#94D6B3',
+                    paddingHorizontal: 10,
+                  }}
+                  onPress={viewProject}>
+                  <Text
+                    style={{
+                      fontWeight: 'bold',
+                      fontSize: 20,
+                    }}>
+                    View Project
+                  </Text>
+                </Pressable>
               </View>
             </Callout>
           </Marker>
@@ -118,7 +156,7 @@ const styles = StyleSheet.create({
     elevation: 14,
     paddingVertical: 0,
     paddingHorizontal: 10,
-    backgroundColor: 'green',
+    backgroundColor: '#BC96E6',
   },
   text: {
     fontSize: 60,
@@ -126,42 +164,5 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     letterSpacing: 0.25,
     color: 'white',
-  },
-  calloutButton: {
-    borderRadius: 50,
-    borderWidth: 3,
-    borderColor: 'white',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 7,
-    },
-    shadowOpacity: 0.81,
-    shadowRadius: 9.11,
-
-    elevation: 14,
-    paddingVertical: 0,
-    paddingHorizontal: 10,
-    backgroundColor: 'green',
-  },
-  calloutText: {
-    fontSize: 20,
-    lineHeight: 25,
-    fontWeight: 'bold',
-    letterSpacing: 0.25,
-    color: 'white',
-  },
-  carouselContainer: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  carouselItem: {
-    width: 200,
-    height: 200,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#dbf3fa',
   },
 });
