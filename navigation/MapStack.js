@@ -4,6 +4,7 @@ import {
 } from '@react-navigation/stack';
 import { View, Image } from 'react-native';
 import Map from '../screens/Map';
+import HeaderComponent from './ScrollHeader'
 import AddProjectMap from '../screens/AddProjectMap';
 import AddProjectModal from '../screens/AddProjectModal';
 import Project from '../screens/Project';
@@ -64,6 +65,7 @@ export default function MapStack() {
         options={{
           headerTintColor: 'white',
           headerStyle: { backgroundColor: 'green' },
+          headerShown: false,
           cardStyleInterpolator:
             CardStyleInterpolators.forFadeFromBottomAndroid,
         }}>

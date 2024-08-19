@@ -228,13 +228,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   formContainer: {
-    flex: 1,
+    height:275,
   },
   map: {
     flex: 1,
   },
   formMap: {
     borderRadius: 20,
+    paddingBottom:20,
     flex: 1,
   },
   button: {
