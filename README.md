@@ -1,3 +1,17 @@
+# Dev Instructions
+
+Download Expo Go app on IOS.
+
+In apple settings, under the Expo Go settings, make sure **Local Network** is set to on.
+
+From the root directory, run `npm install`.
+
+Then, run `npx expo start --tunnel` to start the Metro Bundler.
+
+Scan barcode on the your phone, and you will redirected to the Expo Go app where the app will be displayed.
+
+**IMPORTANT**: Touch will only be activated in the app once you do a **three-finger, hard press** on the screen. I have no idea why, thats just how the dumb app works...
+
 # rewild-it
 Mobile application aimed to improve biodiversity in Toronto through volunteer rewilding initiatives.
 # Our goal
