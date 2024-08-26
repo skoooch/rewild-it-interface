@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Geocoder from 'react-native-geocoding';
 import MapView from 'react-native-maps';
-import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
+import * as ImagePicker from 'expo-image-picker';
 import { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import {
   StyleSheet,
@@ -38,7 +38,7 @@ const BUTTON_SIZE = 35;
 const BORDER_WIDTH = 1;
 
 export default function AddProjectMap({ route, navigation }) {
-  const [response, setResponse] = useState(null);
+  
   const [currLocation, setCurrLocation] = useState(route.params.initialRegion);
   const [currAddress, setCurrAddress] = useState();
   const [markers, setMarkers] = useState(constMarkers);
@@ -49,7 +49,23 @@ export default function AddProjectMap({ route, navigation }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [errors, setErrors] = useState({});
+  const [image, setImage] = useState(null);
 
+  const pickImage = async () => {
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    console.log(result);
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
   const validateForm = () => {
     let errors = {};
 
@@ -146,10 +162,8 @@ export default function AddProjectMap({ route, navigation }) {
                 onChangeText={setTitle}
               />
               <Text style={stylesForm.label}>Upload Images</Text>
-              <Button title="Upload Image" onPress={imageUpload}/>
-              {errors.title ? (
-                <Text style={stylesForm.errorText}>{errors.title}</Text>
-              ) : null}
+              <Button title="Pick an image from camera roll" onPress={pickImage} />
+      {image && <Image source={{ uri: image }} style={styles.image} />}
 
               <Text style={stylesForm.label}>Project Description</Text>
               <TextInput

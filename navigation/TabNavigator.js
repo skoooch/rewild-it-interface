@@ -27,7 +27,6 @@ const TabNavigator = (props) => {
               if (focused) {
                 return (
                   <Icon
-                    
                     name="map"
                     style={{ paddingTop: 10 }}
                     size={40}
