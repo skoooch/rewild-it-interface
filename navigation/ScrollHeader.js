@@ -22,7 +22,7 @@ const Header = (props) => {
           },
         ]}>
 
-        <Text style={styles.conversation}>Conversations</Text>
+        <Text style={styles.conversation}>Timeline</Text>
 
       </View>
 
