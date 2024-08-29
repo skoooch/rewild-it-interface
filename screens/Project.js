@@ -132,7 +132,7 @@ export default function Project({ route, navigation }) {
     </View>
   );
   return (
-    <View style={{ flex: 1, backgroundColor: "#94D6B3" }}>
+    <View style={{ flex: 1, backgroundColor: "#ffffff" }}>
       <FlatList
         stickyHeaderIndices={[0]}
         stickyHeaderHiddenOnScroll={true}
@@ -141,7 +141,9 @@ export default function Project({ route, navigation }) {
           <Item title={item.title} description={item.description} />
         )}
         keyExtractor={(item) => item.id}
-        ListHeaderComponent={HeaderComponent}
+        ListHeaderComponent={
+          <HeaderComponent following={following} setFollowing={setFollowing} />
+        }
       />
     </View>
   );
