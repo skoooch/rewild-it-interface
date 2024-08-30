@@ -3,10 +3,8 @@ import {
   CardStyleInterpolators,
 } from "@react-navigation/stack";
 import { View, Image } from "react-native";
-import Map from "../screens/Map";
 import Discussion from "../screens/Discussion";
-import HeaderComponent from "./ScrollHeader";
-import AddProjectMap from "../screens/AddProjectMap";
+import FollowingList from "../screens/FollowingList";
 import Project from "../screens/Project";
 const Stack = createStackNavigator();
 function LogoTitle() {
@@ -34,10 +32,10 @@ function LogoTitle() {
 }
 export default function MapStack() {
   return (
-    <Stack.Navigator initialRouteName={"Map"}>
+    <Stack.Navigator initialRouteName="Your Projects">
       <Stack.Screen
-        name="Map"
-        component={Map}
+        name="Your Projects"
+        HeaderComponent
         options={{
           headerTintColor: "white",
           headerTitle: (props) => <LogoTitle {...props} />,
@@ -49,20 +47,8 @@ export default function MapStack() {
           cardStyleInterpolator:
             CardStyleInterpolators.forFadeFromBottomAndroid,
         }}
-      />
-      <Stack.Screen
-        name="Add Project"
-        options={{
-          headerTintColor: "white",
-          headerStyle: {
-            backgroundColor: "#45B37A",
-            borderBottomColor: "#F2D8F9",
-          },
-          cardStyleInterpolator:
-            CardStyleInterpolators.forFadeFromBottomAndroid,
-        }}
       >
-        {(props) => <AddProjectMap {...props} />}
+        {(props) => <FollowingList {...props} />}
       </Stack.Screen>
       <Stack.Screen
         name="View Project"

@@ -61,6 +61,7 @@ export default function Header({ following, setFollowing }) {
             style={{
               width: "auto",
               padding: 7,
+              paddingRight: 15,
               borderRightWidth: 2,
               borderColor: "#808080",
             }}
@@ -95,6 +96,7 @@ export default function Header({ following, setFollowing }) {
                 <View
                   style={{
                     padding: 5,
+
                     borderWidth: 2,
                     borderRadius: 15,
                     borderColor: "#45B37A",
@@ -118,13 +120,13 @@ export default function Header({ following, setFollowing }) {
             <TouchableOpacity onPress={viewDiscussion}>
               <View
                 style={{
-                  paddingLeft: 5,
+                  paddingLeft: 15,
                 }}
               >
                 <Icon
                   reverse={true}
-                  name="chat-outline"
-                  size={50}
+                  name="comment-text-multiple-outline"
+                  size={30}
                   color="white"
                 />
               </View>

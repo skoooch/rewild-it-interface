@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
-import Geocoder from 'react-native-geocoding';
-import MapView from 'react-native-maps';
-import * as ImagePicker from 'expo-image-picker';
-import { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import React, { useEffect, useRef, useState } from "react";
+import Geocoder from "react-native-geocoding";
+import MapView from "react-native-maps";
+import * as ImagePicker from "expo-image-picker";
+import { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import {
   StyleSheet,
   Pressable,
@@ -16,10 +16,10 @@ import {
   Platform,
   TouchableOpacity,
   Text,
-} from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+} from "react-native";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
-Geocoder.init('AIzaSyA8YIQuUALtt8RvyCRFQUqcDV-Q9HxWbcU', { language: 'en' }); // set the language
+Geocoder.init("AIzaSyA8YIQuUALtt8RvyCRFQUqcDV-Q9HxWbcU", { language: "en" }); // set the language
 const constMarkers = [
   {
     latitude: 43.65005,
@@ -38,7 +38,6 @@ const BUTTON_SIZE = 35;
 const BORDER_WIDTH = 1;
 
 export default function AddProjectMap({ route, navigation }) {
-  
   const [currLocation, setCurrLocation] = useState(route.params.initialRegion);
   const [currAddress, setCurrAddress] = useState();
   const [markers, setMarkers] = useState(constMarkers);
@@ -46,8 +45,8 @@ export default function AddProjectMap({ route, navigation }) {
   const [modalVisible, setModalVisible] = useState(false);
   const mapRef = useRef();
 
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [errors, setErrors] = useState({});
   const [image, setImage] = useState(null);
 
@@ -69,8 +68,8 @@ export default function AddProjectMap({ route, navigation }) {
   const validateForm = () => {
     let errors = {};
 
-    if (!title) errors.title = 'Title is required';
-    if (!description) errors.description = 'Description is required';
+    if (!title) errors.title = "Title is required";
+    if (!description) errors.description = "Description is required";
 
     setErrors(errors);
 
@@ -79,9 +78,9 @@ export default function AddProjectMap({ route, navigation }) {
 
   const handleSubmit = () => {
     if (validateForm()) {
-      console.log('Submitted', title, description);
-      setTitle('');
-      setDescription('');
+      console.log("Submitted", title, description);
+      setTitle("");
+      setDescription("");
       setErrors({});
     }
   };
@@ -92,12 +91,12 @@ export default function AddProjectMap({ route, navigation }) {
         var addressComponents = json.results[0].address_components;
         console.log(
           [addressComponents[0].long_name, addressComponents[1].long_name].join(
-            ' '
+            " "
           )
         );
         setCurrAddress(
           [addressComponents[0].long_name, addressComponents[1].long_name].join(
-            ' '
+            " "
           )
         );
       })
@@ -115,7 +114,7 @@ export default function AddProjectMap({ route, navigation }) {
     console.log(marker);
   };
   const imageUpload = () => {
-    launchImageLibrary(setResponse)
+    launchImageLibrary(setResponse);
   };
   const addProjectPress = () => {
     setModalVisible(true);
@@ -125,14 +124,16 @@ export default function AddProjectMap({ route, navigation }) {
       <Modal
         animationType="slide"
         visible={modalVisible}
-        presentationStyle="pageSheet">
-        <View style={{ flex: 1, backgroundColor: 'lightblue', padding: 15 }}>
+        presentationStyle="pageSheet"
+      >
+        <View style={{ flex: 1, backgroundColor: "lightblue", padding: 15 }}>
           <TouchableOpacity
             onPress={() => {
               setModalVisible(false);
             }}
-            style={[styles.closeButton, { backgroundColor: 'white' }]}>
-            <Icon name={'close'} size={BUTTON_SIZE / 2} />
+            style={[styles.closeButton, { backgroundColor: "white" }]}
+          >
+            <Icon name={"close"} size={BUTTON_SIZE / 2} />
           </TouchableOpacity>
           <View style={styles.formContainer}>
             <MapView
@@ -142,17 +143,16 @@ export default function AddProjectMap({ route, navigation }) {
                 longitude: currLocation.longitude,
                 latitudeDelta: 0.007,
                 longitudeDelta: 0.007,
-              }}>
-              <Marker
-                key={0}
-                coordinate={currLocation}
-              />
+              }}
+            >
+              <Marker key={0} coordinate={currLocation} />
             </MapView>
           </View>
           <KeyboardAvoidingView
             behavior="padding"
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
-            style={stylesForm.container}>
+            keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
+            style={stylesForm.container}
+          >
             <View style={stylesForm.form}>
               <Text style={stylesForm.label}>Project Title</Text>
               <TextInput
@@ -162,8 +162,11 @@ export default function AddProjectMap({ route, navigation }) {
                 onChangeText={setTitle}
               />
               <Text style={stylesForm.label}>Upload Images</Text>
-              <Button title="Pick an image from camera roll" onPress={pickImage} />
-      {image && <Image source={{ uri: image }} style={styles.image} />}
+              <Button
+                title="Pick an image from camera roll"
+                onPress={pickImage}
+              />
+              {image && <Image source={{ uri: image }} style={styles.image} />}
 
               <Text style={stylesForm.label}>Project Description</Text>
               <TextInput
@@ -188,7 +191,8 @@ export default function AddProjectMap({ route, navigation }) {
         initialRegion={currLocation}
         onRegionChangeComplete={onRegionChangeComplete}
         onRegionChange={onPanDrag}
-        ref={mapRef}>
+        ref={mapRef}
+      >
         {markers.map((marker, index) => (
           <Marker
             key={index}
@@ -199,37 +203,41 @@ export default function AddProjectMap({ route, navigation }) {
       </MapView>
       <View
         style={{
-          position: 'absolute', //use absolute position to show button on top of the map
-          top: '50%', //for center align
-          alignSelf: 'center',
-        }}>
+          position: "absolute", //use absolute position to show button on top of the map
+          top: "50%", //for center align
+          alignSelf: "center",
+        }}
+      >
         <Pressable
           style={
             dragging ? styles.transparentButtonMarker : styles.buttonMarker
           }
-          disabled>
+          disabled
+        >
           <Text style={styles.textMarker}></Text>
         </Pressable>
       </View>
       <View
         style={{
-          position: 'absolute', //use absolute position to show button on top of the map
-          top: '82%', //for center align
-          alignSelf: 'center',
-        }}>
+          position: "absolute", //use absolute position to show button on top of the map
+          top: "82%", //for center align
+          alignSelf: "center",
+        }}
+      >
         <Pressable style={styles.button} onPress={addProjectPress}>
           <Text style={styles.text}>Start Project</Text>
         </Pressable>
       </View>
       <View
         style={{
-          position: 'absolute', //use absolute position to show button on top of the map
-          top: '91.5%', //for center align
-          alignSelf: 'center',
-        }}>
+          position: "absolute", //use absolute position to show button on top of the map
+          top: "91.5%", //for center align
+          alignSelf: "center",
+        }}
+      >
         <Pressable style={styles.addressButton} disabled>
           <Text style={styles.addressText}>
-            {dragging ? 'Finding address...' : currAddress}
+            {dragging ? "Finding address..." : currAddress}
           </Text>
         </Pressable>
       </View>
@@ -242,21 +250,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   formContainer: {
-    height:275,
+    height: 275,
   },
   map: {
     flex: 1,
   },
   formMap: {
     borderRadius: 20,
-    paddingBottom:20,
+    paddingBottom: 20,
     flex: 1,
   },
   button: {
     borderRadius: 50,
     borderWidth: 3,
-    borderColor: '#F2D8F9',
-    shadowColor: '#000',
+    borderColor: "#F2D8F9",
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 7,
@@ -267,11 +275,11 @@ const styles = StyleSheet.create({
     elevation: 14,
     paddingVertical: 10,
     paddingHorizontal: 10,
-    backgroundColor: '#F2D8F9',
+    backgroundColor: "#F2D8F9",
   },
   closeButton: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     width: BUTTON_SIZE + BORDER_WIDTH,
     height: BUTTON_SIZE + BORDER_WIDTH,
     borderWidth: BORDER_WIDTH,
@@ -280,64 +288,64 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 30,
     lineHeight: 30,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     letterSpacing: 0.25,
-    color: '#541d4d',
+    color: "#541d4d",
   },
   addressButton: {
     borderRadius: 5,
     borderWidth: 3,
-    borderColor: '#541d4d',
+    borderColor: "#541d4d",
 
     elevation: 14,
     paddingVertical: 10,
     paddingHorizontal: 10,
-    backgroundColor: '#F2D8F9',
+    backgroundColor: "#F2D8F9",
   },
   addressText: {
     fontSize: 24,
     lineHeight: 24,
 
     letterSpacing: 0.25,
-    color: '#541d4d',
+    color: "#541d4d",
   },
   buttonMarker: {
     borderRadius: 50,
     borderWidth: 2,
-    borderColor: 'white',
+    borderColor: "white",
     paddingVertical: 3,
     paddingHorizontal: 10,
-    backgroundColor: 'darkblue',
+    backgroundColor: "darkblue",
   },
   transparentButtonMarker: {
     borderRadius: 50,
     borderWidth: 2,
-    borderColor: 'white',
+    borderColor: "white",
     opacity: 0.5,
     paddingVertical: 2,
     paddingHorizontal: 9,
-    backgroundColor: 'darkblue',
+    backgroundColor: "darkblue",
   },
   textMarker: {
     fontSize: 24,
     lineHeight: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     letterSpacing: 0.25,
-    color: 'white',
+    color: "white",
   },
 });
 const stylesForm = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     paddingHorizontal: 0,
-    backgroundColor: 'lightblue',
+    backgroundColor: "lightblue",
   },
   form: {
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     padding: 20,
     borderRadius: 10,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -349,18 +357,18 @@ const stylesForm = StyleSheet.create({
   label: {
     fontSize: 16,
     marginBottom: 5,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   input: {
     height: 40,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderWidth: 1,
     marginBottom: 15,
     padding: 10,
     borderRadius: 5,
   },
   descriptionInput: {
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderWidth: 1,
     marginBottom: 15,
     padding: 10,
@@ -369,7 +377,7 @@ const stylesForm = StyleSheet.create({
     borderRadius: 5,
   },
   errorText: {
-    color: 'red',
+    color: "red",
     marginBottom: 10,
   },
 });

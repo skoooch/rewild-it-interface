@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
+
 import {
   View,
   Text,
-  Button,
-  Touchable,
+  Platform,
   TextInput,
   Pressable,
   TouchableHighlight,
@@ -76,6 +76,7 @@ const list_comments = [
 
 const comment_margin_left = 15;
 export default function Discussion() {
+  const [marginTextBox, setMarginTextBox] = useState(5);
   const [replyingTo, setReplyingTo] = useState("Root");
   const [listComment, setListComment] = useState([...list_comments]);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
@@ -103,13 +104,21 @@ export default function Discussion() {
     }
   }, [replyingTo]);
   const handleKeyboardHide = (event) => {
+    setMarginTextBox(5);
     setReplyingTo("Root");
     setIsKeyboardVisible(false);
+  };
+  const handleKeyboardShow = (event) => {
+    setMarginTextBox(100);
   };
   useEffect(() => {
     const hideSubscription = Keyboard.addListener(
       "keyboardDidHide",
       handleKeyboardHide
+    );
+    const openSubscription = Keyboard.addListener(
+      "keyboardDidShow",
+      handleKeyboardShow
     );
   }, []);
   const CommentItem = ({ comment }) => {
@@ -205,12 +214,12 @@ export default function Discussion() {
   return (
     <KeyboardAvoidingView
       behavior="padding"
+      keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
       style={{ flex: 1, backgroundColor: "#F0F0F0" }}
     >
       <View style={styles.container}>
-        <Text style={styles.text}>Comments {listComment.length}</Text>
         <FlatList
-          style={{ marginTop: 5 }}
+          style={{ marginTop: 0 }}
           data={listComment}
           renderItem={renderItem}
           keyExtractor={(item, index) => "_cmt_item" + index}
@@ -222,7 +231,6 @@ export default function Discussion() {
           paddingVertical: 10,
           borderTopWidth: 1,
           borderTopColor: "#dddddd",
-          marginBottom: 5,
         }}
       >
         {replyingTo == "Root" ? (
@@ -279,7 +287,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "snow",
     padding: 2,
-    paddingTop: 20,
   },
   text: {
     fontSize: 12,
