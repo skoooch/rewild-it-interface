@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import MapView from "react-native-maps";
+import { fetchDataGET } from "./utils/helpers";
 import { Marker, Callout, PROVIDER_GOOGLE } from "react-native-maps";
 import Carousel, { Pagination } from "react-native-x-carousel";
 import {
@@ -39,14 +40,26 @@ const markers = [
 ];
 const DATA = [{ text: "#1" }, { text: "#2" }, { text: "#3" }];
 export default function Map({ navigation }) {
+  const [pins, setPins] = useState([]);
+  const [currentProj, setCurrentProj] = useState(null);
+  const getPinDrops = async () => {
+    const pins_res = await fetchDataGET("pindrop/");
+    console.log(pins_res);
+    setPins(pins_res.data);
+  };
+  useEffect(() => {
+    getPinDrops();
+  }, []);
   const [currLocation, setCurrLocation] = useState(TORONTO_REGION);
   const mapRef = useRef();
 
   const onRegionChange = (region: Region) => {
     setCurrLocation(region);
   };
-  const onMarkerPress = (region: Region) => {
-    console.log(region);
+  const onMarkerPress = async (marker) => {
+    const pins_res = await fetchDataGET(`project/${marker.pindrop_id}`);
+    setCurrentProj(pins_res);
+    console.log(pins_res);
   };
   const addMarkerPress = () => {
     navigation.navigate("Add Project", {
@@ -69,10 +82,15 @@ export default function Map({ navigation }) {
         onRegionChangeComplete={onRegionChange}
         ref={mapRef}
       >
-        {markers.map((marker, index) => (
+        {pins.map((marker) => (
           <Marker
-            key={index}
-            coordinate={marker}
+            key={marker.pindrop_id}
+            coordinate={{
+              latitude: marker.latitude,
+              longitude: marker.longitude,
+              latitudeDelta: 0.01,
+              longitudeDelta: 0.01,
+            }}
             onPress={() => onMarkerPress(marker)}
           >
             <Callout>
