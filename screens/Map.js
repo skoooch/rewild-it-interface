@@ -12,68 +12,54 @@ import {
   Button,
   Text,
 } from "react-native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-
-const Stack = createNativeStackNavigator();
-
 const INIT_ZOOM = 0.05;
-console.log(markers);
 const TORONTO_REGION = {
   latitude: 43.65,
   longitude: -79.39,
   latitudeDelta: INIT_ZOOM,
   longitudeDelta: INIT_ZOOM,
 };
-const markers = [
-  {
-    latitude: 43.65005,
-    longitude: -79.401,
-    latitudeDelta: 0.01,
-    longitudeDelta: 0.01,
-  },
-  {
-    latitude: 43.66273179226731,
-    longitude: -79.39456347458716,
-    latitudeDelta: 0.01,
-    longitudeDelta: 0.01,
-  },
-];
-const DATA = [{ text: "#1" }, { text: "#2" }, { text: "#3" }];
 export default function Map({ navigation }) {
   const [pins, setPins] = useState([]);
-  const [currentProj, setCurrentProj] = useState(null);
+  const [currProj, setCurrentProj] = useState({});
+  const currUser = "7c441471-befb-482d-a061-f93279c0d6e0";
+  const [currLocation, setCurrLocation] = useState(TORONTO_REGION);
   const getPinDrops = async () => {
-    const pins_res = await fetchDataGET("pindrop/");
-    console.log(pins_res);
-    setPins(pins_res.data);
+    const pins_res = await fetchDataGET("pindrop/", {
+      longitude: currLocation.longitude,
+      latitude: currLocation.latitude,
+    });
+    if (pins_res.data) {
+      setPins(pins_res.data);
+    } else {
+      setPins([]);
+    }
   };
   useEffect(() => {
     getPinDrops();
   }, []);
-  const [currLocation, setCurrLocation] = useState(TORONTO_REGION);
+
   const mapRef = useRef();
 
   const onRegionChange = (region: Region) => {
     setCurrLocation(region);
   };
   const onMarkerPress = async (marker) => {
-    const pins_res = await fetchDataGET(`project/${marker.pindrop_id}`);
-    setCurrentProj(pins_res);
-    console.log(pins_res);
+    const pins_res = await fetchDataGET(`project/${marker.project_id}`);
+    setCurrentProj(pins_res.data);
   };
   const addMarkerPress = () => {
     navigation.navigate("Add Project", {
       initialRegion: currLocation,
+      currUser: currUser,
     });
   };
   const viewProject = () => {
-    navigation.navigate("View Project", {});
+    navigation.navigate("View Project", {
+      project_id: currProj.project_id,
+      currUser: currUser,
+    });
   };
-  const renderItem = (data) => (
-    <View key={data.text} style={styles.item}>
-      <Text>{data.text}</Text>
-    </View>
-  );
   return (
     <View style={styles.container}>
       <MapView
@@ -109,7 +95,7 @@ export default function Map({ navigation }) {
                     paddingBottom: 10,
                   }}
                 >
-                  Example Project
+                  {currProj.name}
                 </Text>
                 <View style={{ paddingBottom: 10, alignSelf: "flex-start" }}>
                   <Image

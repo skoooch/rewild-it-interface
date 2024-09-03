@@ -1,6 +1,8 @@
 import * as React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { fetchDataGET } from "./utils/helpers";
+import { useIsFocused } from "@react-navigation/native";
 import { useNavigation } from "@react-navigation/native";
 import {
   Text,
@@ -25,36 +27,38 @@ const marker = {
 const BUTTON_SIZE = 35;
 const BORDER_WIDTH = 1;
 export default function FollowingList() {
+  const isFocused = useIsFocused();
+  const currUser = "7c441471-befb-482d-a061-f93279c0d6e0";
+  const [userObj, setUserObj] = useState({});
   const [goToProj, setGoToProj] = useState("");
+  const [data, setData] = useState([]);
   const navigation = useNavigation();
+  const getProjects = async () => {
+    const user_object = await fetchDataGET(`user/${currUser}`);
+    setUserObj(user_object.data);
+    let temp_data = [];
+    for (let i = 0; i < user_object.data.follows.length; i++) {
+      const proj_response = await fetchDataGET(
+        `project/${user_object.data.follows[i]}`
+      );
+      console.log(proj_response);
+      temp_data.push({
+        id: user_object.data.follows[i],
+        title: proj_response.data.name,
+        description: proj_response.data.description,
+      });
+    }
+    setData(temp_data);
+  };
+  useEffect(() => {
+    if (isFocused) getProjects();
+  }, [isFocused]);
   React.useEffect(() => {
     if (goToProj != "") {
-      navigation.navigate("View Project", { projectId: goToProj });
+      console.log(goToProj);
+      navigation.navigate("View Project", { project_id: goToProj });
     }
   }, [goToProj, navigation]);
-  const DATA = [
-    {
-      id: "bd7acbea-c1b1-46c2-aed5-3ad53abb28ba",
-      title: "Rewilding idea here",
-      description:
-        "The Riverbend Meadow Restoration project aims to revive and protect a 15-acre meadow located along the Riverbend Nature Reserve. This area, once rich with native wildflowers, grasses, and diverse wildlife, has suffered from years of neglect, invasive species, and habitat degradation. \n \n Our goal is to restore the meadow to its natural state, creating a thriving habitat for pollinators like bees and butterflies, as well as providing a sanctuary for ground-nesting birds and small mammals. We plan to achieve this by removing invasive species, reseeding with native plants, and reintroducing key species that have been lost over time.",
-      date: "April 30th, 2027",
-    },
-    {
-      id: "3ac68afc-c605-48d3-a4f8-fbd91aa97f63",
-      title: "Project 2",
-      description:
-        "We’ve made great progress in our meadow restoration project! This week, we completed the weeding across 3 acres to prepare the soil for native plants. We successfully planted a mix of wildflowers and grasses, ensuring even seed distribution. Soil tests were conducted to check nutrient levels and pH balance, confirming optimal conditions for seed germination. The weather has been mild with occasional rain, which is perfect for the seeds to start sprouting. Over the next two weeks, we’ll be monitoring the germination process closely and will keep the area well-watered, especially during any dry spells. Our next focus will be introducing beneficial insects to support pollination. By restoring this meadow, we’re creating a thriving habitat for local wildlife, including bees, butterflies, and ground-nesting birds. A huge thank you to our volunteers for their incredible work—your efforts are making a significant impact on our rewilding journey!",
-      date: "April 30th, 2027",
-    },
-    {
-      id: "58694a0f-3da1-471f-bd96-145571e29d72",
-      title: "Project 3",
-      description:
-        "The grassland restoration is entering its next phase. We’ve successfully completed the initial clearing and have just started planting native grasses that are well-suited to the area. These grasses will help restore the natural balance of the ecosystem and provide habitat for ground-nesting birds and other wildlife. We’ll be keeping a close eye on the planting over the next few months and will need volunteers for upcoming maintenance tasks. This is a critical step in preserving our grasslands, and we appreciate everyone’s ongoing support!",
-      date: "April 30th, 2027",
-    },
-  ];
   const Item = ({ id, description, title }) => (
     <TouchableHighlight onPress={() => setGoToProj(id)}>
       <View style={styles.item}>
@@ -74,7 +78,7 @@ export default function FollowingList() {
                 color: "#606060",
               }}
             >
-              April 18th, 2024 by JOhnnyWild
+              {`April 18th, 2024 by ${userObj.username}`}
             </Text>
             <Icon
               reverse={true}
@@ -106,7 +110,7 @@ export default function FollowingList() {
   return (
     <View style={{ flex: 1, backgroundColor: "#ffffff" }}>
       <FlatList
-        data={DATA}
+        data={data}
         renderItem={({ item }) => (
           <Item
             title={item.title}

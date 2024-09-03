@@ -1,11 +1,11 @@
 import * as React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 const GLOBAL = require("../Global");
+import { fetchDataGET } from "./utils/helpers";
 import HeaderComponent from "../navigation/ScrollHeader";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import MapView from "react-native-maps";
-import Carousel from "react-native-reanimated-carousel";
 import { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import {
   Text,
@@ -30,35 +30,45 @@ const marker = {
 const BUTTON_SIZE = 35;
 const BORDER_WIDTH = 1;
 export default function Project({ route, navigation }) {
-  const DATA = [
-    {
-      id: "bd7acbea-c1b1-46c2-aed5-3ad53abb28ba",
-      prev_id: "00000000-0000-0000-0000-000000000000",
-      title: "Rewilding idea here",
-      description:
-        "The Riverbend Meadow Restoration project aims to revive and protect a 15-acre meadow located along the Riverbend Nature Reserve. This area, once rich with native wildflowers, grasses, and diverse wildlife, has suffered from years of neglect, invasive species, and habitat degradation. \n \n Our goal is to restore the meadow to its natural state, creating a thriving habitat for pollinators like bees and butterflies, as well as providing a sanctuary for ground-nesting birds and small mammals. We plan to achieve this by removing invasive species, reseeding with native plants, and reintroducing key species that have been lost over time.",
-      date: "April 30th, 2027",
-    },
-    {
-      id: "3ac68afc-c605-48d3-a4f8-fbd91aa97f63",
-      prev_id: "bd7acbea-c1b1-46c2-aed5-3ad53abb28ba",
-      title: "Timeline post 1",
-      description:
-        "We’ve made great progress in our meadow restoration project! This week, we completed the weeding across 3 acres to prepare the soil for native plants. We successfully planted a mix of wildflowers and grasses, ensuring even seed distribution. Soil tests were conducted to check nutrient levels and pH balance, confirming optimal conditions for seed germination. The weather has been mild with occasional rain, which is perfect for the seeds to start sprouting. Over the next two weeks, we’ll be monitoring the germination process closely and will keep the area well-watered, especially during any dry spells. Our next focus will be introducing beneficial insects to support pollination. By restoring this meadow, we’re creating a thriving habitat for local wildlife, including bees, butterflies, and ground-nesting birds. A huge thank you to our volunteers for their incredible work—your efforts are making a significant impact on our rewilding journey!",
-      date: "April 30th, 2027",
-    },
-    {
-      id: "58694a0f-3da1-471f-bd96-145571e29d72",
-      prev_id: "bd7acbea-c1b1-46c2-aed5-3ad53abb28ba",
-      title: "Timeline post 2",
-      description:
-        "The grassland restoration is entering its next phase. We’ve successfully completed the initial clearing and have just started planting native grasses that are well-suited to the area. These grasses will help restore the natural balance of the ecosystem and provide habitat for ground-nesting birds and other wildlife. We’ll be keeping a close eye on the planting over the next few months and will need volunteers for upcoming maintenance tasks. This is a critical step in preserving our grasslands, and we appreciate everyone’s ongoing support!",
-      date: "April 30th, 2027",
-    },
-  ];
   const [following, setFollowing] = useState(false);
+  const [data, setData] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
-  const [carouselWidth, setCarouselWidth] = useState(10);
+  // let project = route.params.project;
+  const currUser = "7c441471-befb-482d-a061-f93279c0d6e0";
+  // currUser = route.params.currUser; 227b6720-17cf-4d55-88c6-283a97340ba5
+  // delete once projs are working
+  const [project, setProject] = useState({});
+  const getProject = async () => {
+    const project_res = await fetchDataGET(
+      `project/${route.params.project_id}`
+    );
+    if (project_res.data) {
+      setProject(project_res.data);
+      const infoUnformatted = project_res.data.timeline.posts[0];
+      const projectInfo = {
+        id: infoUnformatted.timeline_post_id,
+        prev_id: null,
+        title: project_res.data.name,
+        body: project_res.data.description,
+        latitude: project_res.data.pindrop.latitude,
+        longitude: project_res.data.pindrop.longitude,
+        images: infoUnformatted.images,
+        date: "April 30th, 2027",
+      };
+      const user_object = await fetchDataGET(
+        `user/${"7c441471-befb-482d-a061-f93279c0d6e0"}`
+      );
+      setFollowing(
+        user_object.data.follows.includes(project_res.data.project_id)
+      );
+      setData([projectInfo]);
+    } else {
+      setProject([]);
+    }
+  };
+  useEffect(() => {
+    getProject();
+  }, [following]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [errors, setErrors] = useState({});
@@ -87,9 +97,9 @@ export default function Project({ route, navigation }) {
   const imageUpload = () => {
     return;
   };
-  const Item = ({ title, description, prev_id, currLocation }) => (
+  const Item = ({ title, description, prev_id, latitude, longitude }) => (
     <View>
-      {prev_id == GLOBAL.NULL_UUID && (
+      {prev_id == null && (
         <View style={styles.itemFirst}>
           <View style={styles.itemHeaderFirst}>
             <Text style={styles.titleFirst}>{title}</Text>
@@ -108,42 +118,19 @@ export default function Project({ route, navigation }) {
             <MapView
               style={styles.formMap}
               initialRegion={{
-                latitude: marker.latitude,
-                longitude: marker.longitude,
+                latitude: latitude,
+                longitude: longitude,
                 latitudeDelta: 0.007,
                 longitudeDelta: 0.007,
               }}
             >
-              <Marker key={0} coordinate={marker} />
+              <Marker
+                key={0}
+                coordinate={{ latitude: latitude, longitude: longitude }}
+              />
             </MapView>
           </View>
-          <View
-            onLayout={({ nativeEvent }) => {
-              const { x, y, width, height } = nativeEvent.layout;
-              setCarouselWidth(width);
-            }}
-            style={{ flex: 1, padding: 10 }}
-          >
-            <Carousel
-              loop
-              width={carouselWidth}
-              height={carouselWidth / 2}
-              data={[...new Array(6).keys()]}
-              scrollAnimationDuration={1000}
-              renderItem={({ index }) => (
-                <View
-                  style={{
-                    flex: 1,
-                    justifyContent: "center",
-                  }}
-                >
-                  <Text style={{ textAlign: "center", fontSize: 30 }}>
-                    {index}
-                  </Text>
-                </View>
-              )}
-            />
-          </View>
+
           <View style={styles.itemDescriptionFirst}>
             <View
               style={{
@@ -170,7 +157,7 @@ export default function Project({ route, navigation }) {
           </Text>
         </View>
       )}
-      {prev_id != GLOBAL.NULL_UUID && (
+      {prev_id != null && (
         <View style={styles.item}>
           <View style={styles.itemHeader}>
             <Text style={styles.title}>{title}</Text>
@@ -185,33 +172,7 @@ export default function Project({ route, navigation }) {
               April 18th, 2024 by JOhnnyWild
             </Text>
           </View>
-          <View
-            onLayout={({ nativeEvent }) => {
-              const { x, y, width, height } = nativeEvent.layout;
-              setCarouselWidth(width);
-            }}
-            style={{ flex: 1, padding: 10 }}
-          >
-            <Carousel
-              loop
-              width={carouselWidth}
-              height={carouselWidth / 2}
-              data={[...new Array(6).keys()]}
-              scrollAnimationDuration={1000}
-              renderItem={({ index }) => (
-                <View
-                  style={{
-                    flex: 1,
-                    justifyContent: "center",
-                  }}
-                >
-                  <Text style={{ textAlign: "center", fontSize: 30 }}>
-                    {index}
-                  </Text>
-                </View>
-              )}
-            />
-          </View>
+          <View style={{ flex: 1 }}></View>
           <View style={styles.itemDescription}>
             <View
               style={{
@@ -283,17 +244,26 @@ export default function Project({ route, navigation }) {
       <FlatList
         stickyHeaderIndices={[0]}
         stickyHeaderHiddenOnScroll={true}
-        data={DATA}
+        data={data}
         renderItem={({ item }) => (
           <Item
             title={item.title}
             prev_id={item.prev_id}
-            description={item.description}
+            description={item.body}
+            latitude={item.latitude}
+            longitude={item.longitude}
           />
         )}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={
-          <HeaderComponent following={following} setFollowing={setFollowing} />
+          <HeaderComponent
+            following={following}
+            setFollowing={setFollowing}
+            num_followers={project.follower_count}
+            discussion_board={project.discussion_board}
+            project_id={project.project_id}
+            user_id={currUser}
+          />
         }
       />
       <View

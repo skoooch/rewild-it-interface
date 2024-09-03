@@ -1,5 +1,6 @@
 const GLOBAL = require("../../Global");
 const URI = GLOBAL.BACKEND_URI;
+const user_id = "4074e7b2-58e7-49f9-9c53-75ed858eebd5";
 /**
  * Helper function to make a POST request. Throws an error if the request fails
  * or if the request returns a non 200 response.
@@ -10,7 +11,7 @@ const URI = GLOBAL.BACKEND_URI;
  */
 export async function fetchDataPOST(route, item) {
   // const session = await fetchSession();
-  const url = `${GLOBAL.URI}${route}`;
+  const url = `${GLOBAL.BACKEND_URI}${route}`;
   const settings = {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -34,19 +35,20 @@ export async function fetchDataPOST(route, item) {
  * Input:
  *      route - a string representing the route from the base URI to send this request
  */
-export async function fetchDataDELETE(route) {
+export async function fetchDataDELETE(route, item) {
   // const session = await fetchSession();
-  const url = `${GLOBAL.URI}${route}`;
+  const url = `${GLOBAL.BACKEND_URI}${route}`;
   const settings = {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(item),
   };
   const response = await fetch(url, settings);
   if (!(199 < response.status && response.status < 300)) {
     const promiseRes = await response.text();
     const jsonErrMsg = JSON.parse(promiseRes);
     throw new Error(
-      `${response.status} ${response.statusText} Error: ${jsonErrMsg.message}`
+      `${response.status} ${response.statusText}, Error: ${jsonErrMsg.message}`
     );
   }
   return response;
@@ -60,20 +62,22 @@ export async function fetchDataDELETE(route) {
  *      route - a string representing the route from the base URI to send this request
  *      token - a JWT token to authorize request in the backend
  */
-export async function fetchDataGET(route, token) {
+export async function fetchDataGET(route, item) {
   try {
     const settings = {
       method: "GET",
     };
-    console.log(`${URI}${route}`);
-    console.log(settings);
     let res = null;
     if (route == "pindrop/") {
-      res = await fetch(`${URI}${route}${"?delta=5&longitude=0&latitude=0"}`);
+      res = await fetch(
+        `${URI}${route}${"?delta=5&longitude="}${
+          item.longitude
+        }${"&latitude="}${item.latitude}`,
+        settings
+      );
     } else {
-      res = await fetch(`${URI}${route}`, settings);
+      res = await fetch(`${URI}${route}`);
     }
-    console.log(res);
     resJson = await res.json();
     return {
       error: false,

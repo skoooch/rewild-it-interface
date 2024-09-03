@@ -3,15 +3,32 @@ import { TouchableOpacity, StyleSheet, Text, View } from "react-native";
 import { Button } from "react-native-paper";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { Dimensions } from "react-native";
+import { fetchDataDELETE, fetchDataPOST } from "../screens/utils/helpers";
 import { useNavigation } from "@react-navigation/native";
-export default function Header({ following, setFollowing }) {
+export default function Header({
+  following,
+  setFollowing,
+  num_followers,
+  discussion_board,
+  project_id,
+  user_id,
+}) {
   const navigation = useNavigation();
-  const clickFollow = () => {
+  const clickFollow = async () => {
+    const follow_change = !following;
+    if (follow_change) {
+      const response = await fetchDataPOST(`project/${project_id}/follow`, {
+        user_id: user_id,
+      });
+    } else {
+      const response = await fetchDataDELETE(`project/${project_id}/follow`, {
+        user_id: user_id,
+      });
+    }
     setFollowing(!following);
   };
   const width = Dimensions.get("window").width / 3;
   const viewDiscussion = () => {
-    console.log("here");
     navigation.navigate("Project Discussion", {});
   };
   return (
@@ -43,7 +60,7 @@ export default function Header({ following, setFollowing }) {
                 color: "#45B37A",
               }}
             >
-              100
+              {num_followers}
             </Text>
             <Text
               style={{
