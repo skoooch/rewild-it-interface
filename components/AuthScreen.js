@@ -6,6 +6,7 @@ import {
   Button,
   StyleSheet,
   TouchableOpacity,
+  Image,
   Alert,
 } from 'react-native';
 import { getAuth, signInWithCustomToken } from '@firebase/auth';
@@ -81,10 +82,6 @@ export default function AuthScreen({ setIsLoggedIn }) {
 
       // Assume successful login and obtain token
       // const token = 'sample-login-token';
-      Alert.alert(
-        isSignup ? 'Sign Up' : 'Log In',
-        'Authentication successful.'
-      );
       console.log(auth.currentUser);
       setIsLoggedIn(true);
     } catch (error) {
@@ -97,10 +94,25 @@ export default function AuthScreen({ setIsLoggedIn }) {
   };
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{isSignup ? 'Sign Up' : 'Log In'}</Text>
+    <View
+      style={{
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+      }}>
+      <Image
+        style={{
+          width: '90%',
+          resizeMode: 'contain',
+        }}
+        source={require('../assets/text_transp.png')}
+      />
+    </View>
       {isSignup ? (
         <>
           <TextInput
+            placeholderTextColor="#bbb" 
             style={styles.input}
             placeholder="Email"
             value={email}
@@ -109,6 +121,7 @@ export default function AuthScreen({ setIsLoggedIn }) {
             autoCapitalize="none"
           />
           <TextInput
+            placeholderTextColor="#bbb" 
             style={styles.input}
             placeholder="Username"
             value={username}
@@ -118,6 +131,7 @@ export default function AuthScreen({ setIsLoggedIn }) {
         </>
       ) : (
         <TextInput
+        placeholderTextColor="#bbb" 
           style={styles.input}
           placeholder="Username"
           value={username}
@@ -126,18 +140,19 @@ export default function AuthScreen({ setIsLoggedIn }) {
         />
       )}
       <TextInput
+        placeholderTextColor="#bbb" 
         style={styles.input}
         placeholder="Password"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
       />
-      <Button title={isSignup ? 'Sign Up' : 'Log In'} onPress={handleAuth} />
+      <Button title={isSignup ? 'Sign up' : 'Log in'} onPress={handleAuth} />
       <TouchableOpacity onPress={toggleAuthMode} style={styles.toggleButton}>
         <Text style={styles.toggleButtonText}>
           {isSignup
-            ? 'Already have an account? Log In'
-            : 'Need an account? Sign Up'}
+            ? 'Already have an account? Log in'
+            : 'Need an account? Sign up'}
         </Text>
       </TouchableOpacity>
     </View>
@@ -146,25 +161,27 @@ export default function AuthScreen({ setIsLoggedIn }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    padding: 20,
-    backgroundColor: '#F5F5F5',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-    color: '#333',
+    justifyContent: 'top',
+    paddingTop: 50,
+    padding: 15,
+    backgroundColor: '#94D6B3',
+    color: "#000000",
+    borderTopWidth: 70, 
+    borderTopColor: "#45B37A",
+    borderBottomWidth: 70, 
+    borderBottomColor: "#45B37A",
   },
   input: {
     height: 40,
-    borderColor: '#ccc',
+    borderColor: '#000000',
     borderWidth: 1,
     borderRadius: 5,
     marginBottom: 20,
     paddingHorizontal: 10,
     backgroundColor: '#fff',
+    color: "#000",
+    fontWeight: '600',
+    fontSize: 25,
   },
   toggleButton: {
     marginTop: 20,
@@ -173,5 +190,5 @@ const styles = StyleSheet.create({
   toggleButtonText: {
     color: '#007BFF',
     fontSize: 16,
-  },
+  }
 });

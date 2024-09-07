@@ -9,10 +9,10 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import MapView from 'react-native-maps';
 const URI = GLOBAL.BACKEND_URI;
 import { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+
 import {
   Text,
   View,
-  Button,
   Image,
   Pressable,
   FlatList,
@@ -22,6 +22,7 @@ import {
   Platform,
   TouchableOpacity,
   Modal,
+  Button,
   Linking,
   KeyboardAvoidingView,
 } from 'react-native';
@@ -120,7 +121,7 @@ export default function Project({ route, navigation }) {
     if (!result.canceled) {
       const resizedPhoto = await ImageManipulator.manipulateAsync(
         result.assets[0].uri,
-        [{ resize: { width: 300 } }], // resize to width of 300 and preserve aspect ratio
+        [{ resize: { width: 300, } }], // resize to width of 300 and preserve aspect ratio
         { compress: 0.7, format: 'png' }
       );
       setImage(resizedPhoto);
@@ -142,7 +143,7 @@ export default function Project({ route, navigation }) {
     if (!result.canceled) {
       const resizedPhoto = await ImageManipulator.manipulateAsync(
         result.assets[0].uri,
-        [{ resize: { width: 300 } }], // resize to width of 300 and preserve aspect ratio
+        [{ resize: { width: 300}}], // resize to width of 300 and preserve aspect ratio
         { compress: 0.7, format: 'png' }
       );
       setImage(resizedPhoto);
@@ -173,7 +174,7 @@ export default function Project({ route, navigation }) {
         type: 'image/png',
       });
       const add_image_response = await fetchDataPOST(
-        `timeline/post/${response.timeline_post_id}/image/${image_response.image_id}`
+        `timeline/post/${response.posts[response.posts.length - 1].timeline_post_id}/image/${image_response.image_id}`
       );
       console.log('Submitted', title, description);
       setTitle('');
@@ -201,7 +202,6 @@ export default function Project({ route, navigation }) {
                 fontSize: 12,
                 backgroundColor: '#ffffff',
                 paddingTop: 0,
-                color: '#606060',
               }}>
               Created April 18th, 2024 by JOhnnyWild
             </Text>
@@ -221,11 +221,24 @@ export default function Project({ route, navigation }) {
               />
             </MapView>
           </View>
-          <Button
-            onPress={getDirections}
-            style={{ fontSize: 12 }}
-            title="View in Maps"
-          />
+          <TouchableOpacity
+              style={{
+   marginTop:10,
+    paddingTop:10,
+    paddingBottom:10,
+    backgroundColor:'#F091F3',
+    borderRadius:10,
+    borderWidth: 5,
+    borderColor: '#F091F3'}}
+              onPress={getDirections}
+              underlayColor='#fff'>
+              <Text style={{color:'#000',
+      textAlign:'center',
+      fontSize: 15,
+      paddingLeft: 10,
+      paddingRight : 10,
+      fontWeight: '900'}}>View in Maps</Text>
+          </TouchableOpacity>
 
           <View style={styles.itemDescriptionFirst}></View>
           <Text
@@ -233,10 +246,9 @@ export default function Project({ route, navigation }) {
               fontSize: 40,
               backgroundColor: '#ffffff',
               textAlign: 'center',
-              paddingTop: 15,
-              color: '#606060',
-              fontStyle: 'italic',
-              textDecorationLine: 'underline',
+              paddingTop: 30,
+              color: '#010101',
+              fontWeight: '900',
             }}>
             Project Timeline
           </Text>
@@ -249,9 +261,9 @@ export default function Project({ route, navigation }) {
             <Text
               style={{
                 fontSize: 12,
-                backgroundColor: '#dddddd',
+                backgroundColor: '#94D6B3',
                 paddingTop: 0,
-                color: '#606060',
+                color: '#000000',
               }}>
               April 18th, 2024 by JOhnnyWild
             </Text>
@@ -406,7 +418,8 @@ export default function Project({ route, navigation }) {
       </View>
     </View>
   );
-}
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -423,12 +436,12 @@ const styles = StyleSheet.create({
   },
   itemHeader: {
     flex: 1,
-    backgroundColor: '#dddddd',
+    backgroundColor: '#94D6B3',
     padding: 10,
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
-    borderBottomWidth: 3,
-    borderBottomColor: '#000000',
+    borderBottomWidth: 5,
+    borderBottomColor: '#45B37A',
   },
   itemFirst: {
     backgroundColor: '#ffffff',
@@ -467,7 +480,9 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    backgroundColor: '#dddddd',
+    backgroundColor: '#94D6B3',
+    fontWeight: '900',
+    color: "#000"
   },
   titleFirst: {
     fontSize: 32,
@@ -490,8 +505,12 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   image: {
-    width: 300,
-    height: 300,
+    alignSelf: 'stretch',
+    aspectRatio: 16/9,
+    marginTop:0,
+    marginLeft: 0,
+    marginRight: 0
+
   },
   formMap: {
     paddingTop: 20,

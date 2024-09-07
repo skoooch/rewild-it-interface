@@ -41,6 +41,7 @@ export default function App() {
   [isLoggedIn, setIsLoggedIn] = useState(false);
   useEffect(() => {
     const checkLoginStatus = async () => {
+
       let refreshToken = SecureStore.getItem('refreshToken');
       console.log(refreshToken);
       let response = await refreshIdToken(refreshToken);

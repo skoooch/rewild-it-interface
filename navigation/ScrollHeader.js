@@ -20,12 +20,12 @@ export default function Header({
     const follow_change = !following;
     console.log(user_id)
     if (follow_change) {
-      const response = await fetchDataPOST(`project/${project_id}/follow/`, {
+      const response = await fetchDataPOST(`project/${project_id}/follow`, {
         user_id: user_id,
       });
       console.log(response)
     } else {
-      const response = await fetchDataDELETE(`project/${project_id}/follow/`, {
+      await fetchDataDELETE(`project/${project_id}/follow`, {
         user_id: user_id,
       });
     }

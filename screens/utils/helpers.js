@@ -25,7 +25,7 @@ export async function fetchDataPOST(route, body) {
   };
 
   let res = await fetch(`${URI}${route}`, requestOptions)
-  if (!(199 < res.status && res.status < 300)) {;
+  if (!(199 < res.status && res.status < 300)) {
     console.log(`${res.status} ${res.statusText}, Error`);
     throw new Error(`${res.status} ${res.statusText}, Error:`);
   }
