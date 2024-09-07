@@ -112,7 +112,7 @@ export default function FollowingList() {
     </TouchableHighlight></View>
   );
   return (
-    <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
+    <View style={{ flex: 1, backgroundColor: '#ffffff'}}>
         <Text
             style={{
               fontSize: 40,

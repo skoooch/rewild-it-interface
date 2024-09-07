@@ -40,12 +40,16 @@ export default function AuthScreen({ setIsLoggedIn }) {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const handleAuth = async () => {
     try {
       if (isSignup) {
         // TODO: Add signup logic
         // Assume successful signup and obtain token
         var create_response = await fetchDataPOST(`user`, {
+          first_name: firstName,
+          last_name: lastName,
           username: username,
           password: password,
           email: email,
@@ -111,6 +115,22 @@ export default function AuthScreen({ setIsLoggedIn }) {
     </View>
       {isSignup ? (
         <>
+          <TextInput
+            placeholderTextColor="#bbb" 
+            style={styles.input}
+            placeholder="First Name"
+            value={firstName}
+            onChangeText={setFirstName}
+            autoCapitalize="none"
+          />
+          <TextInput
+            placeholderTextColor="#bbb" 
+            style={styles.input}
+            placeholder="Last Name"
+            value={lastName}
+            onChangeText={setLastName}
+            autoCapitalize="none"
+          />
           <TextInput
             placeholderTextColor="#bbb" 
             style={styles.input}

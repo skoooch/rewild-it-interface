@@ -44,6 +44,7 @@ export default function MapStack() {
             backgroundColor: '#94D6B3',
             borderBottomColor: '#45B37A',
             borderBottomWidth: 5,
+            height: 120
           },
           cardStyleInterpolator:
             CardStyleInterpolators.forFadeFromBottomAndroid,

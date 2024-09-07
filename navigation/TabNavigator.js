@@ -23,6 +23,7 @@ const TabNavigator = (props) => {
             tabBarActiveTintColor: '#F3BCF5',
             tabBarStyle: {
               backgroundColor: '#45B37A',
+              height: 100
             },
           }}>
           <Tab.Screen
