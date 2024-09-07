@@ -9,6 +9,36 @@ const TEST_URI = GLOBAL.LOCAL_URI;
 
 const FIREBASE_API_KEY = 'AIzaSyAV9vA2i86EEGMHY-opLiKuNC_QLPLNPfg';
 
+export async function fetchDataPOST(route, body) {
+  const token = await SecureStore.getItem('accessToken');
+  var myHeaders = new Headers();
+  myHeaders.append("Content-Type", "application/json");
+  myHeaders.append("Authorization", `Bearer ${token}`);
+
+  var raw = JSON.stringify(body);
+
+  var requestOptions = {
+    method: 'POST',
+    headers: myHeaders,
+    body: raw,
+    redirect: 'follow'
+  };
+
+  let res = await fetch(`${URI}${route}`, requestOptions)
+  if (!(199 < res.status && res.status < 300)) {;
+    console.log(`${res.status} ${res.statusText}, Error`);
+    throw new Error(`${res.status} ${res.statusText}, Error:`);
+  }
+  try {
+    const resJson = await res.json();
+    return resJson;
+  } catch (e) {
+    const resText = await res.text();
+    return resText;
+  }
+
+
+}
 /**
  * Helper function to make a server side GET request. Throws an error if the request fails
  * or if the request returns a non 200 response.
@@ -116,35 +146,37 @@ export async function fetchDataLOGIN(route, item) {
     return resText;
   }
 }
-export async function fetchDataPOST(route, item) {
-  const token = await SecureStore.getItem('accessToken');
 
-  // const session = await fetchSession();
-  const url = `${URI}${route}`;
-  console.log(url);
-  const settings = {
-    method: 'POST',
-    headers: {
-      'Content-type': 'application/json',
-      Authorization: `Bearer ${token.trim()}`,
-    },
-    body: JSON.stringify(item),
-  };
-  console.log(settings);
-  const res = await fetch(url, settings);
-  if (!(199 < res.status && res.status < 300)) {
-    const promiseRes = await res.text();
-    console.log(`${res.status} ${res.statusText}, Error`);
-    throw new Error(`${res.status} ${res.statusText}, Error:`);
-  }
-  try {
-    const resJson = await res.json();
-    return resJson;
-  } catch (e) {
-    const resText = await res.text();
-    return resText;
-  }
-}
+// export async function fetchDataPOST(route, item) {
+//   const token = await SecureStore.getItem('accessToken');
+
+//   // const session = await fetchSession();
+//   const url = `${URI}${route}`;
+//   console.log(url);
+//   const settings = {
+//     method: 'POST',
+//     headers: {
+//       'Content-type': 'application/json',
+//       'Authorization': `Bearer ${token}`,
+//     },
+//     body: JSON.stringify(item),
+//   };
+//   console.log(settings);
+//   const res = await fetch(url, settings);
+//   if (!(199 < res.status && res.status < 300)) {
+//     const promiseRes = await res.text();
+//     console.log(`${res.status} ${res.statusText}, Error`);
+//     throw new Error(`${res.status} ${res.statusText}, Error:`);
+//   }
+//   try {
+//     const resJson = await res.json();
+//     return resJson;
+//   } catch (e) {
+//     const resText = await res.text();
+//     return resText;
+//   }
+// }
+
 export async function fetchDataIMAGE(route, item) {
   // const session = await fetchSession();
   const auth = getAuth();
@@ -188,32 +220,29 @@ export async function fetchDataIMAGE(route, item) {
  * Input:
  *      route - a string representing the route from the base URI to send this request
  */
-export async function fetchDataDELETE(route, item) {
+export async function fetchDataDELETE(route, body) {
   // const session = await fetchSession()
-  const auth = getAuth();
-  console.log('delete');
   const token = await SecureStore.getItem('accessToken');
-  const url = `${URI}${route}`;
-  const settings = {
+  var myHeaders = new Headers();
+  myHeaders.append("Content-Type", "application/json");
+  myHeaders.append("Authorization", `Bearer ${token}`);
+
+  var raw = JSON.stringify(body);
+
+  var requestOptions = {
     method: 'DELETE',
-    headers: {
-      'Content-type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(item),
+    headers: myHeaders,
+    body: raw,
+    redirect: 'follow'
   };
-  const response = await fetch(url, settings);
-  if (!(199 < response.status && response.status < 300)) {
-    const promiseRes = await response.text();
-    console.log(`${response.status} ${response.statusText}, Error`);
-    throw new Error(`${response.status} ${response.statusText}, Error:`);
-  }
-  try {
-    const resJson = await response.json();
-    return resJson;
-  } catch (e) {
-    return resText;
-  }
+
+  let response = await fetch(`${URI}${route}`, requestOptions)
+  const resJson = await response.json();
+    return {
+      error: false,
+      data: resJson,
+      err_message: '',
+    }
 }
 
 /**
