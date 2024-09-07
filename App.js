@@ -1,60 +1,45 @@
-import { initializeApp, getApp, getApps } from '@firebase/app';
+import { initializeApp, getApp, getApps } from "@firebase/app";
 // Import the functions you need from the SDKs you need
-import * as SecureStore from 'expo-secure-store';
-import {
-  onAuthStateChanged,
-  setPersistence,
-  browserLocalPersistence,
-} from '@firebase/auth';
+import * as SecureStore from "expo-secure-store";
+import { onAuthStateChanged } from "@firebase/auth";
 const firebaseConfig = {
-  apiKey: 'AIzaSyAV9vA2i86EEGMHY-opLiKuNC_QLPLNPfg',
-  authDomain: 'rewild-it-c744b.firebaseapp.com',
-  projectId: 'rewild-it-c744b',
-  storageBucket: 'rewild-it-c744b.appspot.com',
-  messagingSenderId: '228667685680',
-  appId: '1:228667685680:web:5626d50b07499461f726f5',
-  measurementId: 'G-DDLN8JVZMH',
+  apiKey: "AIzaSyAV9vA2i86EEGMHY-opLiKuNC_QLPLNPfg",
+  authDomain: "rewild-it-c744b.firebaseapp.com",
+  projectId: "rewild-it-c744b",
+  storageBucket: "rewild-it-c744b.appspot.com",
+  messagingSenderId: "228667685680",
+  appId: "1:228667685680:web:5626d50b07499461f726f5",
+  measurementId: "G-DDLN8JVZMH",
 };
 
-import { refreshIdToken, getCustomToken } from './screens/utils/helpers';
+import { refreshIdToken, getCustomToken } from "./screens/utils/helpers";
 // // Initialize Firebase
 
-import {
-  getAuth,
-  initializeAuth,
-  signInWithCustomToken,
-  getReactNativePersistence,
-} from 'firebase/auth';
-import * as firebaseAuth from 'firebase/auth';
-const reactNativePersistence = firebaseAuth.getReactNativePersistence;
-import { AsyncStorage } from 'react-native';
-import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+import { getAuth, initializeAuth, signInWithCustomToken } from "firebase/auth";
 let FIREBASE_APP, auth;
 FIREBASE_APP = initializeApp(firebaseConfig);
 auth = initializeAuth(FIREBASE_APP);
 
-import { useState, useEffect } from 'react';
-import TabNavigator from './navigation/TabNavigator';
-import AuthScreen from './components/AuthScreen';
+import { useState, useEffect } from "react";
+import TabNavigator from "./navigation/TabNavigator";
+import AuthScreen from "./screens/AuthScreen";
 export default function App() {
-  
   [isLoggedIn, setIsLoggedIn] = useState(false);
   useEffect(() => {
     const checkLoginStatus = async () => {
-
-      let refreshToken = SecureStore.getItem('refreshToken');
+      let refreshToken = SecureStore.getItem("refreshToken");
       console.log(refreshToken);
       let response = await refreshIdToken(refreshToken);
-      let userID = await SecureStore.getItem('currUser');
+      let userID = await SecureStore.getItem("currUser");
       console.log(response);
 
       if (response != null) {
-        await SecureStore.setItemAsync('accessToken', response.access_token);
+        await SecureStore.setItemAsync("accessToken", response.access_token);
 
         session_res = await getCustomToken(response.access_token, userID);
         token = session_res.data.token;
       } else {
-        token = '';
+        token = "";
       }
 
       const auth = getAuth(FIREBASE_APP);
@@ -67,13 +52,13 @@ export default function App() {
           console.log(userCredential);
           console.log(user);
 
-          await SecureStore.setItemAsync('currUser', uid);
+          await SecureStore.setItemAsync("currUser", uid);
           await SecureStore.setItemAsync(
-            'accessToken',
+            "accessToken",
             userCredential._tokenResponse.idToken
           );
           await SecureStore.setItemAsync(
-            'refreshToken',
+            "refreshToken",
             userCredential._tokenResponse.refreshToken
           );
           // ...
@@ -86,12 +71,12 @@ export default function App() {
 
       onAuthStateChanged(auth, (user) => {
         if (user) {
-          SecureStore.setItemAsync('currUser', user.uid);
+          SecureStore.setItemAsync("currUser", user.uid);
           setIsLoggedIn(true);
-          console.log('POOP A');
+          console.log("POOP A");
         } else {
           setIsLoggedIn(false);
-          console.log('POOP B');
+          console.log("POOP B");
         }
       });
     };
