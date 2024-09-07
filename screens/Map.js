@@ -105,13 +105,13 @@ export default function Map({ route, navigation }) {
                 <Text
                   style={{
                     fontWeight: "900",
-                    fontSize: 30,
+                    fontSize: 20,
                     marginBottom: 10,
                   }}
                 >
                   {currProj.name}
                 </Text>
-                <View style={{ paddingVertical: 0, marginLeft: 8, overflow: "hidden", borderWidth:1, borderColor: "#fff",
+                <View style={{ paddingVertical: 0, marginLeft: 15, overflow: "hidden", borderWidth:1, borderColor: "#fff",
     height: 200,
     width: 300,
     borderRadius: 40,}}>
