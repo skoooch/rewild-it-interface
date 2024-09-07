@@ -136,7 +136,6 @@ export default function Map({ route, navigation }) {
                 >
                   <Text
                     style={{
-        
                       fontWeight: "900",
                       fontSize: 20,
                     }}
