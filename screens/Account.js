@@ -2,10 +2,35 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import FIREBASE_APP from '../App.js'
 import { getAuth } from 'firebase/auth';
+import * as SecureStore from "expo-secure-store";
+import {fetchDataGET} from './utils/helpers'
+import RNRestart from 'react-native-restart'; // Import package from node modules
+
+const logOut = async () => {
+  await SecureStore.deleteItemAsync('currUser');
+  await SecureStore.deleteItemAsync('accessToken');
+  await SecureStore.deleteItemAsync('refreshToken');
+  RNRestart.restart();
+  
+}
+
 const AccountScreen = () => {
+
   const [email, setEmail] = useState('user@example.com');
-  const [username, setUsername] = useState('Username');
+  const [username, setUsername] = useState('username');
+  const [fullName, setFullName] = useState('John Doe');
   const [isEditing, setIsEditing] = useState(false);
+
+  (async () => {
+     let currUser = await SecureStore.getItemAsync('currUser');
+     fetchDataGET(`user/${currUser}/`).then((res) => {
+
+        setEmail(res.data.email)
+        setUsername(res.data.username)
+        setFullName(res.data.first_name + " " + res.data.last_name)
+
+    })
+  })()
 
   const handleSave = () => {
     setIsEditing(false);
@@ -19,6 +44,16 @@ const AccountScreen = () => {
 
   return (
     <View style={styles.container}>
+      <Text
+            style={{
+              fontSize: 40,
+              textAlign: 'center',
+              paddingVertical: 30,
+              color: '#010101',
+              fontWeight: '900',
+            }}>
+            {fullName}
+          </Text>
       <View style={styles.row}>
         <Text style={styles.label}>Email:</Text>
         {isEditing ? (
@@ -53,6 +88,7 @@ const AccountScreen = () => {
       ) : (
         <Button title="Edit Profile" onPress={handleEdit} />
       )}
+              <Button title="Log out" style={{color: 'red', fontWeight: 'bold'}} onPress={logOut} />
     </View>
   );
 };

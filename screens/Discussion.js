@@ -44,13 +44,13 @@ export default function Discussion({ route, navigation }) {
     console.log(replyingTo);
     const currUser = await SecureStore.getItemAsync('currUser');
     if (replyingTo)
-      await fetchDataPOST(`discussion/`, {
+      await fetchDataPOST(`discussion`, {
         parent_id: replyingTo,
         body: message,
         author_id: currUser,
       });
     else
-      await fetchDataPOST(`discussion/`, {
+      await fetchDataPOST(`discussion`, {
         parent_id: rootId,
         body: message,
         author_id: currUser,

@@ -97,43 +97,46 @@ export default function Map({ route, navigation }) {
             <Callout>
               <View
                 style={{
-                  flexDirection: "column",
-                  alignItems: "center",
+                  paddingVertical: 10, alignSelf: "stretch",
                   justifyContent: "center",
-                  width: "100%",
+                  alignItems: 'center',
                 }}
               >
                 <Text
                   style={{
-                    fontWeight: "bold",
-                    fontSize: 20,
-                    paddingBottom: 10,
+                    fontWeight: "900",
+                    fontSize: 30,
+                    marginBottom: 10,
                   }}
                 >
                   {currProj.name}
                 </Text>
-                <View style={{ paddingBottom: 10, alignSelf: "flex-start" }}>
+                <View style={{ paddingVertical: 0, marginLeft: 8, overflow: "hidden", borderWidth:1, borderColor: "#fff",
+    height: 200,
+    width: 300,
+    borderRadius: 40,}}>
                   <Image
                     style={{
-                      resizeMode: "contain",
+                      height:200,
                       width: 300,
-                      height: 300,
+                      borderRadius: 40,
                     }}
                     source={{ uri: `${URI}images/files/${imageID}.png` }}
                   />
                 </View>
                 <Pressable
                   style={{
+                    marginTop: 10,
+                    paddingVertical: 10,
                     borderRadius: 5,
                     padding: 5,
                     backgroundColor: "#94D6B3",
-                    paddingHorizontal: 10,
                   }}
                   onPress={viewProject}
                 >
                   <Text
                     style={{
-                      fontWeight: "bold",
+                      fontWeight: "900",
                       fontSize: 20,
                     }}
                   >

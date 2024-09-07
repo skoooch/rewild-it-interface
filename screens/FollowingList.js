@@ -66,6 +66,7 @@ export default function FollowingList() {
     }
   }, [goToProj, navigation]);
   const Item = ({ id, description, title }) => (
+    <View>
     <TouchableHighlight onPress={() => setGoToProj(id)}>
       <View style={styles.item}>
         <View style={styles.itemHeader}>
@@ -108,10 +109,20 @@ export default function FollowingList() {
           </View>
         </View>
       </View>
-    </TouchableHighlight>
+    </TouchableHighlight></View>
   );
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
+        <Text
+            style={{
+              fontSize: 40,
+              textAlign: 'center',
+              paddingVertical: 20,
+              color: '#010101',
+              fontWeight: '900',
+            }}>
+            My Projects
+      </Text>
       <FlatList
         data={data}
         renderItem={({ item }) => (
