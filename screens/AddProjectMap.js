@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import FIREBASE_APP from '../App.js'
+import FIREBASE_APP from '../App.js';
 import Geocoder from 'react-native-geocoding';
 import MapView from 'react-native-maps';
 import * as ImagePicker from 'expo-image-picker';
@@ -9,6 +9,7 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as SecureStore from 'expo-secure-store';
+
 import {
   StyleSheet,
   Pressable,
@@ -52,7 +53,6 @@ export default function AddProjectMap({ route, navigation }) {
   const [dragging, setDragging] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const mapRef = useRef();
-
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [errors, setErrors] = useState({});
@@ -62,8 +62,7 @@ export default function AddProjectMap({ route, navigation }) {
       `pindrop/${'?delta=5&longitude='}${
         currLocation.longitude
       }${'&latitude='}${currLocation.latitude}`,
-      {
-      }
+      {}
     );
     console.log(pins_res);
     if (pins_res.data) {
@@ -82,6 +81,28 @@ export default function AddProjectMap({ route, navigation }) {
     }
     // No permissions request is necessary for launching the image library
     let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.1,
+    });
+
+    if (!result.canceled) {
+      const resizedPhoto = await ImageManipulator.manipulateAsync(
+        result.assets[0].uri,
+        [{ resize: { width: 300 } }], // resize to width of 300 and preserve aspect ratio
+        { compress: 0.7, format: 'png' }
+      );
+      setImage(resizedPhoto);
+    }
+  };
+  const [statusCam, requestPermissionCam] = ImagePicker.useCameraPermissions();
+  const takeImage = async () => {
+    if (statusCam?.granted === false) {
+      requestPermissionCam();
+    }
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: true,
       aspect: [4, 3],
@@ -126,13 +147,15 @@ export default function AddProjectMap({ route, navigation }) {
       console.log('Submitted', title, description);
       let currUser = await SecureStore.getItemAsync('currUser');
       try {
-        console.log({"EH": {
-          name: title,
-          description: description,
-          pindrop_latitude: currLocation.latitude,
-          pindrop_longitude: currLocation.longitude,
-          followers: [currUser],
-        }})
+        console.log({
+          EH: {
+            name: title,
+            description: description,
+            pindrop_latitude: currLocation.latitude,
+            pindrop_longitude: currLocation.longitude,
+            followers: [currUser],
+          },
+        });
         const response = await fetchDataPOST('project/', {
           name: title,
           description: description,
@@ -146,10 +169,10 @@ export default function AddProjectMap({ route, navigation }) {
           type: 'image/png',
         });
         const add_image_response = await fetchDataPOST(
-          `timeline/post/${response.timeline.posts[0].timeline_post_id}/image/${image_response.image_id}`,
+          `timeline/post/${response.timeline.posts[0].timeline_post_id}/image/${image_response.image_id}`
         );
         console.log(add_image_response);
-        
+
         navigation.navigate('View Project', {
           project_id: response.project_id,
           currUser: currUser,
@@ -188,7 +211,12 @@ export default function AddProjectMap({ route, navigation }) {
         animationType="slide"
         presentationStyle="pageSheet">
         <KeyboardAwareScrollView
-          style={{ flex: 1, backgroundColor: 'lightblue', padding: 15, paddingBottom:30 }}>
+          style={{
+            flex: 1,
+            backgroundColor: 'lightblue',
+            padding: 15,
+            paddingBottom: 30,
+          }}>
           <TouchableOpacity
             onPress={() => {
               setModalVisible(false);
@@ -196,7 +224,7 @@ export default function AddProjectMap({ route, navigation }) {
             style={[styles.closeButton, { backgroundColor: 'white' }]}>
             <Icon name={'close'} size={BUTTON_SIZE / 2} />
           </TouchableOpacity>
-          <View style={{...styles.formContainer, marginVertical: 10}}>
+          <View style={{ ...styles.formContainer, marginVertical: 10 }}>
             <MapView
               style={styles.formMap}
               initialRegion={{
@@ -216,7 +244,7 @@ export default function AddProjectMap({ route, navigation }) {
               />
             </MapView>
           </View>
-          <View style={{...stylesForm.form, marginBottom: 50}}>
+          <View style={{ ...stylesForm.form, marginBottom: 50 }}>
             <Text style={stylesForm.label}>Project Title</Text>
             <TextInput
               style={stylesForm.input}
@@ -227,14 +255,34 @@ export default function AddProjectMap({ route, navigation }) {
             {errors.title ? (
               <Text style={stylesForm.errorText}>{errors.title}</Text>
             ) : null}
-            <Text style={stylesForm.label}>Upload Images</Text>
+            <Text style={stylesForm.label}>Upload Image</Text>
 
-            <Button
-              title="Pick an image from camera roll"
-              onPress={pickImage}
-            />
+            {image ? (
+              <>
+                <Button title="Change Image" onPress={pickImage} />
+                <Button title="Capture an Image" onPress={takeImage} />
+              </>
+            ) : (
+              <>
+                <Button
+                  title="Pick an image from camera roll"
+                  onPress={pickImage}
+                />
+                <Button title="Capture an Image" onPress={takeImage} />
+              </>
+            )}
             {image && (
-              <Image source={{ uri: image.uri }} style={styles.image} />
+              <View
+                style={{
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginBottom: 5,
+                }}>
+                <Image
+                  source={{ uri: image.uri }}
+                  style={{ ...styles.image, borderRadius: 5 }}
+                />
+              </View>
             )}
             <Text style={stylesForm.label}>Project Description</Text>
             <TextInput
@@ -404,8 +452,8 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   image: {
-    width: 200,
-    height: 200,
+    width: 300,
+    height: 300,
   },
 });
 const stylesForm = StyleSheet.create({

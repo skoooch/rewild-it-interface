@@ -16,10 +16,7 @@ const firebaseConfig = {
   measurementId: 'G-DDLN8JVZMH',
 };
 
-import {
-  refreshIdToken,
-  getCustomToken
-} from './screens/utils/helpers';
+import { refreshIdToken, getCustomToken } from './screens/utils/helpers';
 // // Initialize Firebase
 
 import {
@@ -40,30 +37,26 @@ import { useState, useEffect } from 'react';
 import TabNavigator from './navigation/TabNavigator';
 import AuthScreen from './components/AuthScreen';
 export default function App() {
+  
   [isLoggedIn, setIsLoggedIn] = useState(false);
   useEffect(() => {
     const checkLoginStatus = async () => {
-      
-      let refreshToken = SecureStore.getItem("refreshToken");
+      let refreshToken = SecureStore.getItem('refreshToken');
       console.log(refreshToken);
       let response = await refreshIdToken(refreshToken);
       let userID = await SecureStore.getItem('currUser');
-      console.log(response)
+      console.log(response);
 
       if (response != null) {
-        await SecureStore.setItemAsync(
-            'accessToken',
-            response.access_token
-          );
+        await SecureStore.setItemAsync('accessToken', response.access_token);
 
-          session_res = await getCustomToken(response.access_token, userID)
-          token = session_res.data.token
-          
+        session_res = await getCustomToken(response.access_token, userID);
+        token = session_res.data.token;
       } else {
-        token=""
+        token = '';
       }
 
-      const auth = getAuth(FIREBASE_APP)
+      const auth = getAuth(FIREBASE_APP);
       // const FIREBASE_APP = initializeApp(firebaseConfig);
       await signInWithCustomToken(auth, token)
         .then(async (userCredential) => {
@@ -72,30 +65,32 @@ export default function App() {
           const uid = user.uid;
           console.log(userCredential);
           console.log(user);
-          
+
           await SecureStore.setItemAsync('currUser', uid);
           await SecureStore.setItemAsync(
             'accessToken',
             userCredential._tokenResponse.idToken
           );
-          await SecureStore.setItemAsync('refreshToken', userCredential._tokenResponse.refreshToken);
+          await SecureStore.setItemAsync(
+            'refreshToken',
+            userCredential._tokenResponse.refreshToken
+          );
           // ...
         })
         .catch((error) => {
           const errorCode = error.code;
           const errorMessage = error.message;
-          console.log(error)
+          console.log(error);
         });
 
       onAuthStateChanged(auth, (user) => {
         if (user) {
           SecureStore.setItemAsync('currUser', user.uid);
           setIsLoggedIn(true);
-          console.log("POOP A")
+          console.log('POOP A');
         } else {
-
           setIsLoggedIn(false);
-          console.log("POOP B")
+          console.log('POOP B');
         }
       });
     };

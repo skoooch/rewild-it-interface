@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import FIREBASE_APP from '../App.js'
+import FIREBASE_APP from '../App.js';
 const GLOBAL = require('../Global');
-import { fetchDataGET, fetchDataPOST } from './utils/helpers';
+import { fetchDataGET, fetchDataPOST, fetchDataIMAGE } from './utils/helpers';
 import * as ImagePicker from 'expo-image-picker';
 import HeaderComponent from '../navigation/ScrollHeader';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -22,8 +22,11 @@ import {
   Platform,
   TouchableOpacity,
   Modal,
+  Linking,
   KeyboardAvoidingView,
 } from 'react-native';
+import * as ImageManipulator from 'expo-image-manipulator';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 const marker = {
   latitude: 43.65005,
   longitude: -79.401,
@@ -39,10 +42,23 @@ export default function Project({ route, navigation }) {
   const [image, setImage] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [project, setProject] = useState({});
-  const currUser = route.params.currUser
+  const currUser = route.params.currUser;
+  const getDirections = () => {
+    const scheme = Platform.select({
+      ios: 'maps://0,0?q=',
+      android: 'geo:0,0?q=',
+    });
+    const latLng = `${data[0].latitude},${data[0].longitude}`;
+    const label = `${data[0].title}`;
+    const url = Platform.select({
+      ios: `${scheme}${label}@${latLng}`,
+      android: `${scheme}${latLng}(${label})`,
+    });
+    Linking.openURL(url);
+  };
   const getProject = async () => {
     const project_res = await fetchDataGET(
-      `project/${route.params.project_id}/`,
+      `project/${route.params.project_id}/`
     );
     if (project_res.data) {
       setProject(project_res.data);
@@ -51,19 +67,31 @@ export default function Project({ route, navigation }) {
         id: infoUnformatted.timeline_post_id,
         prev_id: null,
         title: project_res.data.name,
-        body: project_res.data.description,
+
         latitude: project_res.data.pindrop.latitude,
         longitude: project_res.data.pindrop.longitude,
+        images: [],
+        date: 'April 30th, 2027',
+      };
+      const first_timeline = {
+        id: '0',
+        prev_id: infoUnformatted.timeline_post_id,
+        title: 'Project Proposal',
+        body: project_res.data.description,
         images: infoUnformatted.images,
         date: 'April 30th, 2027',
       };
-      
-      const user_object = await fetchDataGET(`user/${currUser}/`,);
-      console.log(user_object)
+      const user_object = await fetchDataGET(`user/${currUser}/`);
+      console.log(user_object);
       setFollowing(
         user_object.data.follows.includes(project_res.data.project_id)
       );
-      setData([projectInfo, ...project_res.data.timeline.posts.slice(1)]);
+      console.log(projectInfo);
+      setData([
+        projectInfo,
+        first_timeline,
+        ...project_res.data.timeline.posts.slice(1),
+      ]);
     } else {
       setProject([]);
     }
@@ -76,7 +104,12 @@ export default function Project({ route, navigation }) {
 
   const [description, setDescription] = useState('');
   const [errors, setErrors] = useState({});
+  const [status, requestPermission] = ImagePicker.useMediaLibraryPermissions();
   const pickImage = async () => {
+    if (status?.granted === false) {
+      requestPermission();
+    }
+    // No permissions request is necessary for launching the image library
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: true,
@@ -93,6 +126,29 @@ export default function Project({ route, navigation }) {
       setImage(resizedPhoto);
     }
   };
+  const [statusCam, requestPermissionCam] = ImagePicker.useCameraPermissions();
+  const takeImage = async () => {
+    if (statusCam?.granted === false) {
+      requestPermissionCam();
+    }
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.1,
+    });
+
+    if (!result.canceled) {
+      const resizedPhoto = await ImageManipulator.manipulateAsync(
+        result.assets[0].uri,
+        [{ resize: { width: 300 } }], // resize to width of 300 and preserve aspect ratio
+        { compress: 0.7, format: 'png' }
+      );
+      setImage(resizedPhoto);
+    }
+  };
+
   const validateForm = () => {
     let errors = {};
     if (!title) errors.title = 'Title is required';
@@ -111,6 +167,14 @@ export default function Project({ route, navigation }) {
         { Title: title, Body: description }
       );
       console.log(response);
+      const image_response = await fetchDataIMAGE('image/', {
+        uri: image.uri,
+        name: 'test',
+        type: 'image/png',
+      });
+      const add_image_response = await fetchDataPOST(
+        `timeline/post/${response.timeline_post_id}/image/${image_response.image_id}`
+      );
       console.log('Submitted', title, description);
       setTitle('');
       setDescription('');
@@ -125,7 +189,7 @@ export default function Project({ route, navigation }) {
     prev_id,
     latitude,
     longitude,
-    image,
+    image_file,
   }) => (
     <View>
       {prev_id == null && (
@@ -157,20 +221,13 @@ export default function Project({ route, navigation }) {
               />
             </MapView>
           </View>
-          <Image
-            source={`${URI}/images/files/150928c0-f0d5-469f-beb3-3415a534cf8c.png`}
-            style={styles.image}
+          <Button
+            onPress={getDirections}
+            style={{ fontSize: 12 }}
+            title="View in Maps"
           />
-          <View style={styles.itemDescriptionFirst}>
-            <View
-              style={{
-                padding: 10,
-                borderRadius: 5,
-                backgroundColor: '#f0f0f0',
-              }}>
-              <Text style={styles.description}>{description}</Text>
-            </View>
-          </View>
+
+          <View style={styles.itemDescriptionFirst}></View>
           <Text
             style={{
               fontSize: 40,
@@ -200,6 +257,21 @@ export default function Project({ route, navigation }) {
             </Text>
           </View>
           <View style={{ flex: 1 }}></View>
+          {image_file && (
+            <View
+              style={{
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginBottom: 5,
+              }}>
+              <Image
+                source={{
+                  uri: `${URI}images/files/${image_file.image_id}.png`,
+                }}
+                style={styles.image}
+              />
+            </View>
+          )}
           <View style={styles.itemDescription}>
             <View
               style={{
@@ -220,7 +292,13 @@ export default function Project({ route, navigation }) {
         animationType="slide"
         visible={modalVisible}
         presentationStyle="pageSheet">
-        <View style={{ flex: 1, backgroundColor: 'lightblue', padding: 15 }}>
+        <KeyboardAwareScrollView
+          style={{
+            flex: 1,
+            backgroundColor: 'lightblue',
+            padding: 15,
+            paddingBottom: 30,
+          }}>
           <TouchableOpacity
             onPress={() => {
               setModalVisible(false);
@@ -228,46 +306,61 @@ export default function Project({ route, navigation }) {
             style={[styles.closeButton, { backgroundColor: 'white' }]}>
             <Icon name={'close'} size={BUTTON_SIZE / 2} />
           </TouchableOpacity>
-          <KeyboardAvoidingView
-            behavior="padding"
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
-            style={stylesForm.container}>
-            <View style={stylesForm.form}>
-              <Text style={stylesForm.label}>Post Title</Text>
-              <TextInput
-                style={stylesForm.input}
-                placeholder="Enter your title"
-                value={title}
-                onChangeText={setTitle}
-              />
-              <Text style={stylesForm.label}>Upload Images</Text>
-              {errors.title ? (
-                <Text style={stylesForm.errorText}>{errors.title}</Text>
-              ) : null}
-              <Button
-                title="Pick an image from camera roll"
-                onPress={pickImage}
-              />
-              {image && (
-                <Image source={{ uri: image.uri }} style={styles.image} />
-              )}
-              <Text style={stylesForm.label}>Description</Text>
-              <TextInput
-                multiline={true}
-                numberOfLines={10}
-                style={stylesForm.descriptionInput}
-                placeholder="Enter your description"
-                value={description}
-                onChangeText={setDescription}
-              />
-              {errors.description ? (
-                <Text style={stylesForm.errorText}>{errors.description}</Text>
-              ) : null}
+          <View style={{ ...stylesForm.form, marginTop: 30 }}>
+            <Text style={stylesForm.label}>Post Title</Text>
+            <TextInput
+              style={stylesForm.input}
+              placeholder="Enter your title"
+              value={title}
+              onChangeText={setTitle}
+            />
+            <Text style={stylesForm.label}>Upload Images</Text>
+            {errors.title ? (
+              <Text style={stylesForm.errorText}>{errors.title}</Text>
+            ) : null}
+            {image ? (
+              <>
+                <Button title="Change Image" onPress={pickImage} />
+                <Button title="Capture an Image" onPress={takeImage} />
+              </>
+            ) : (
+              <>
+                <Button
+                  title="Pick an image from camera roll"
+                  onPress={pickImage}
+                />
+                <Button title="Capture an Image" onPress={takeImage} />
+              </>
+            )}
+            {image && (
+              <View
+                style={{
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginBottom: 5,
+                }}>
+                <Image
+                  source={{ uri: image.uri }}
+                  style={{ ...styles.image, borderRadius: 5 }}
+                />
+              </View>
+            )}
+            <Text style={stylesForm.label}>Description</Text>
+            <TextInput
+              multiline={true}
+              numberOfLines={10}
+              style={stylesForm.descriptionInput}
+              placeholder="Enter your description"
+              value={description}
+              onChangeText={setDescription}
+            />
+            {errors.description ? (
+              <Text style={stylesForm.errorText}>{errors.description}</Text>
+            ) : null}
 
-              <Button title="Create" onPress={handleSubmit} />
-            </View>
-          </KeyboardAvoidingView>
-        </View>
+            <Button title="Create" onPress={handleSubmit} />
+          </View>
+        </KeyboardAwareScrollView>
       </Modal>
       <FlatList
         stickyHeaderIndices={[0]}
@@ -280,7 +373,7 @@ export default function Project({ route, navigation }) {
             description={item.body}
             latitude={item.latitude}
             longitude={item.longitude}
-            image={item.images[0]}
+            image_file={item.images ? item.images[0]: null}
           />
         )}
         keyExtractor={(item) => item.id}
@@ -397,8 +490,8 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   image: {
-    width: 200,
-    height: 200,
+    width: 300,
+    height: 300,
   },
   formMap: {
     paddingTop: 20,
@@ -460,5 +553,25 @@ const stylesForm = StyleSheet.create({
   errorText: {
     color: 'red',
     marginBottom: 10,
+  },
+});
+const stylesDir = StyleSheet.create({
+  directionsButton: {
+    backgroundColor: '#fff',
+    borderColor: '#ccc',
+    borderWidth: 1,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  directionsText: {
+    fontSize: 12,
+    color: '#007AFF', // Apple Maps-style blue
+    fontWeight: '600',
   },
 });
