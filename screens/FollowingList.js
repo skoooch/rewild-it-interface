@@ -1,9 +1,9 @@
-import * as React from "react";
-import { useState, useEffect } from "react";
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import { fetchDataGET } from "./utils/helpers";
-import { useIsFocused } from "@react-navigation/native";
-import { useNavigation } from "@react-navigation/native";
+import * as React from 'react';
+import { useState, useEffect } from 'react';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { fetchDataGET } from './utils/helpers';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
+import * as SecureStore from 'expo-secure-store';
 import {
   Text,
   View,
@@ -17,7 +17,7 @@ import {
   TouchableHighlight,
   Modal,
   KeyboardAvoidingView,
-} from "react-native";
+} from 'react-native';
 const marker = {
   latitude: 43.65005,
   longitude: -79.401,
@@ -28,18 +28,20 @@ const BUTTON_SIZE = 35;
 const BORDER_WIDTH = 1;
 export default function FollowingList() {
   const isFocused = useIsFocused();
-  const currUser = "7c441471-befb-482d-a061-f93279c0d6e0";
+  const currUser = '919170fd-8986-4b01-8d99-7a88bf2c5aac';
   const [userObj, setUserObj] = useState({});
-  const [goToProj, setGoToProj] = useState("");
+  const [goToProj, setGoToProj] = useState('');
   const [data, setData] = useState([]);
   const navigation = useNavigation();
   const getProjects = async () => {
-    const user_object = await fetchDataGET(`user/${currUser}`);
+    let currUser = await SecureStore.getItemAsync('currUser');
+    const user_object = await fetchDataGET(`user/${currUser}/`, {
+    });
     setUserObj(user_object.data);
     let temp_data = [];
     for (let i = 0; i < user_object.data.follows.length; i++) {
       const proj_response = await fetchDataGET(
-        `project/${user_object.data.follows[i]}`
+        `project/${user_object.data.follows[i]}/`
       );
       console.log(proj_response);
       temp_data.push({
@@ -54,9 +56,13 @@ export default function FollowingList() {
     if (isFocused) getProjects();
   }, [isFocused]);
   React.useEffect(() => {
-    if (goToProj != "") {
+    if (goToProj != '') {
       console.log(goToProj);
-      navigation.navigate("View Project", { project_id: goToProj });
+      navigation.navigate('View Project', {
+        project_id: goToProj,
+        currUser: currUser,
+      });
+      setGoToProj('');
     }
   }, [goToProj, navigation]);
   const Item = ({ id, description, title }) => (
@@ -65,24 +71,22 @@ export default function FollowingList() {
         <View style={styles.itemHeader}>
           <View
             style={{
-              display: "flex",
-              justifyContent: "space-between",
-              minWidth: "100%",
-              flexDirection: "row",
-            }}
-          >
+              display: 'flex',
+              justifyContent: 'space-between',
+              minWidth: '100%',
+              flexDirection: 'row',
+            }}>
             <Text
               style={{
                 fontSize: 12,
-                backgroundColor: "#ffffff",
-                color: "#606060",
-              }}
-            >
+                backgroundColor: '#ffffff',
+                color: '#606060',
+              }}>
               {`April 18th, 2024 by ${userObj.username}`}
             </Text>
             <Icon
               reverse={true}
-              style={{ alignSelf: "flex-start" }}
+              style={{ alignSelf: 'flex-start' }}
               name="dots-horizontal"
               size={30}
               color="b0b0b0"
@@ -96,9 +100,8 @@ export default function FollowingList() {
               padding: 10,
               paddingBottom: 0,
               borderRadius: 5,
-              backgroundColor: "#ffffff",
-            }}
-          >
+              backgroundColor: '#ffffff',
+            }}>
             <Text numberOfLines={3} style={styles.description}>
               {description}
             </Text>
@@ -108,7 +111,7 @@ export default function FollowingList() {
     </TouchableHighlight>
   );
   return (
-    <View style={{ flex: 1, backgroundColor: "#ffffff" }}>
+    <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
       <FlatList
         data={data}
         renderItem={({ item }) => (
@@ -125,23 +128,23 @@ export default function FollowingList() {
 }
 const styles = StyleSheet.create({
   item: {
-    backgroundColor: "#ffffff",
+    backgroundColor: '#ffffff',
     paddingVertical: 14,
     paddingHorizontal: 3,
     borderBottomWidth: 1,
-    borderColor: "#909090",
+    borderColor: '#909090',
   },
   itemHeader: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: '#ffffff',
     paddingHorizontal: 10,
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
-    borderBottomColor: "#000000",
+    borderBottomColor: '#000000',
   },
   title: {
     fontSize: 25,
-    backgroundColor: "ffffff",
+    backgroundColor: 'ffffff',
   },
   description: {
     fontSize: 16,

@@ -1,16 +1,19 @@
-import * as React from "react";
-import { useState, useEffect } from "react";
-import { NavigationContainer } from "@react-navigation/native";
-const GLOBAL = require("../Global");
-import { fetchDataGET } from "./utils/helpers";
-import HeaderComponent from "../navigation/ScrollHeader";
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import MapView from "react-native-maps";
-import { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import * as React from 'react';
+import { useState, useEffect } from 'react';
+import FIREBASE_APP from '../App.js'
+const GLOBAL = require('../Global');
+import { fetchDataGET, fetchDataPOST } from './utils/helpers';
+import * as ImagePicker from 'expo-image-picker';
+import HeaderComponent from '../navigation/ScrollHeader';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import MapView from 'react-native-maps';
+const URI = GLOBAL.BACKEND_URI;
+import { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import {
   Text,
   View,
   Button,
+  Image,
   Pressable,
   FlatList,
   TextInput,
@@ -20,7 +23,7 @@ import {
   TouchableOpacity,
   Modal,
   KeyboardAvoidingView,
-} from "react-native";
+} from 'react-native';
 const marker = {
   latitude: 43.65005,
   longitude: -79.401,
@@ -31,16 +34,15 @@ const BUTTON_SIZE = 35;
 const BORDER_WIDTH = 1;
 export default function Project({ route, navigation }) {
   const [following, setFollowing] = useState(false);
+  const [updateNeeded, setUpdateNeeded] = useState(false);
   const [data, setData] = useState([]);
+  const [image, setImage] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
-  // let project = route.params.project;
-  const currUser = "7c441471-befb-482d-a061-f93279c0d6e0";
-  // currUser = route.params.currUser; 227b6720-17cf-4d55-88c6-283a97340ba5
-  // delete once projs are working
   const [project, setProject] = useState({});
+  const currUser = route.params.currUser
   const getProject = async () => {
     const project_res = await fetchDataGET(
-      `project/${route.params.project_id}`
+      `project/${route.params.project_id}/`,
     );
     if (project_res.data) {
       setProject(project_res.data);
@@ -53,32 +55,48 @@ export default function Project({ route, navigation }) {
         latitude: project_res.data.pindrop.latitude,
         longitude: project_res.data.pindrop.longitude,
         images: infoUnformatted.images,
-        date: "April 30th, 2027",
+        date: 'April 30th, 2027',
       };
-      const user_object = await fetchDataGET(
-        `user/${"7c441471-befb-482d-a061-f93279c0d6e0"}`
-      );
+      
+      const user_object = await fetchDataGET(`user/${currUser}/`,);
+      console.log(user_object)
       setFollowing(
         user_object.data.follows.includes(project_res.data.project_id)
       );
-      setData([projectInfo]);
+      setData([projectInfo, ...project_res.data.timeline.posts.slice(1)]);
     } else {
       setProject([]);
     }
   };
   useEffect(() => {
     getProject();
-  }, [following]);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [errors, setErrors] = useState({});
+    setUpdateNeeded(false);
+  }, [following, updateNeeded]);
+  const [title, setTitle] = useState('');
 
+  const [description, setDescription] = useState('');
+  const [errors, setErrors] = useState({});
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.1,
+    });
+
+    if (!result.canceled) {
+      const resizedPhoto = await ImageManipulator.manipulateAsync(
+        result.assets[0].uri,
+        [{ resize: { width: 300 } }], // resize to width of 300 and preserve aspect ratio
+        { compress: 0.7, format: 'png' }
+      );
+      setImage(resizedPhoto);
+    }
+  };
   const validateForm = () => {
     let errors = {};
-
-    if (!title) errors.title = "Title is required";
-    if (!description) errors.description = "Description is required";
-
+    if (!title) errors.title = 'Title is required';
+    if (!description) errors.description = 'Description is required';
     setErrors(errors);
 
     return Object.keys(errors).length === 0;
@@ -86,18 +104,29 @@ export default function Project({ route, navigation }) {
   const addMarkerPress = () => {
     setModalVisible(true);
   };
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (validateForm()) {
-      console.log("Submitted", title, description);
-      setTitle("");
-      setDescription("");
+      const response = await fetchDataPOST(
+        `project/${route.params.project_id}/timeline`,
+        { Title: title, Body: description }
+      );
+      console.log(response);
+      console.log('Submitted', title, description);
+      setTitle('');
+      setDescription('');
       setErrors({});
+      setModalVisible(false);
+      setUpdateNeeded(true);
     }
   };
-  const imageUpload = () => {
-    return;
-  };
-  const Item = ({ title, description, prev_id, latitude, longitude }) => (
+  const Item = ({
+    title,
+    description,
+    prev_id,
+    latitude,
+    longitude,
+    image,
+  }) => (
     <View>
       {prev_id == null && (
         <View style={styles.itemFirst}>
@@ -106,11 +135,10 @@ export default function Project({ route, navigation }) {
             <Text
               style={{
                 fontSize: 12,
-                backgroundColor: "#ffffff",
+                backgroundColor: '#ffffff',
                 paddingTop: 0,
-                color: "#606060",
-              }}
-            >
+                color: '#606060',
+              }}>
               Created April 18th, 2024 by JOhnnyWild
             </Text>
           </View>
@@ -122,37 +150,37 @@ export default function Project({ route, navigation }) {
                 longitude: longitude,
                 latitudeDelta: 0.007,
                 longitudeDelta: 0.007,
-              }}
-            >
+              }}>
               <Marker
                 key={0}
                 coordinate={{ latitude: latitude, longitude: longitude }}
               />
             </MapView>
           </View>
-
+          <Image
+            source={`${URI}/images/files/150928c0-f0d5-469f-beb3-3415a534cf8c.png`}
+            style={styles.image}
+          />
           <View style={styles.itemDescriptionFirst}>
             <View
               style={{
                 padding: 10,
                 borderRadius: 5,
-                backgroundColor: "#f0f0f0",
-              }}
-            >
+                backgroundColor: '#f0f0f0',
+              }}>
               <Text style={styles.description}>{description}</Text>
             </View>
           </View>
           <Text
             style={{
               fontSize: 40,
-              backgroundColor: "#ffffff",
-              textAlign: "center",
+              backgroundColor: '#ffffff',
+              textAlign: 'center',
               paddingTop: 15,
-              color: "#606060",
-              fontStyle: "italic",
-              textDecorationLine: "underline",
-            }}
-          >
+              color: '#606060',
+              fontStyle: 'italic',
+              textDecorationLine: 'underline',
+            }}>
             Project Timeline
           </Text>
         </View>
@@ -164,11 +192,10 @@ export default function Project({ route, navigation }) {
             <Text
               style={{
                 fontSize: 12,
-                backgroundColor: "#dddddd",
+                backgroundColor: '#dddddd',
                 paddingTop: 0,
-                color: "#606060",
-              }}
-            >
+                color: '#606060',
+              }}>
               April 18th, 2024 by JOhnnyWild
             </Text>
           </View>
@@ -178,9 +205,8 @@ export default function Project({ route, navigation }) {
               style={{
                 padding: 10,
                 borderRadius: 5,
-                backgroundColor: "#f0f0f0",
-              }}
-            >
+                backgroundColor: '#f0f0f0',
+              }}>
               <Text style={styles.description}>{description}</Text>
             </View>
           </View>
@@ -189,26 +215,23 @@ export default function Project({ route, navigation }) {
     </View>
   );
   return (
-    <View style={{ flex: 1, backgroundColor: "#ffffff" }}>
+    <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
       <Modal
         animationType="slide"
         visible={modalVisible}
-        presentationStyle="pageSheet"
-      >
-        <View style={{ flex: 1, backgroundColor: "lightblue", padding: 15 }}>
+        presentationStyle="pageSheet">
+        <View style={{ flex: 1, backgroundColor: 'lightblue', padding: 15 }}>
           <TouchableOpacity
             onPress={() => {
               setModalVisible(false);
             }}
-            style={[styles.closeButton, { backgroundColor: "white" }]}
-          >
-            <Icon name={"close"} size={BUTTON_SIZE / 2} />
+            style={[styles.closeButton, { backgroundColor: 'white' }]}>
+            <Icon name={'close'} size={BUTTON_SIZE / 2} />
           </TouchableOpacity>
           <KeyboardAvoidingView
             behavior="padding"
-            keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
-            style={stylesForm.container}
-          >
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+            style={stylesForm.container}>
             <View style={stylesForm.form}>
               <Text style={stylesForm.label}>Post Title</Text>
               <TextInput
@@ -218,11 +241,16 @@ export default function Project({ route, navigation }) {
                 onChangeText={setTitle}
               />
               <Text style={stylesForm.label}>Upload Images</Text>
-              <Button title="Upload Image" onPress={imageUpload} />
               {errors.title ? (
                 <Text style={stylesForm.errorText}>{errors.title}</Text>
               ) : null}
-
+              <Button
+                title="Pick an image from camera roll"
+                onPress={pickImage}
+              />
+              {image && (
+                <Image source={{ uri: image.uri }} style={styles.image} />
+              )}
               <Text style={stylesForm.label}>Description</Text>
               <TextInput
                 multiline={true}
@@ -252,6 +280,7 @@ export default function Project({ route, navigation }) {
             description={item.body}
             latitude={item.latitude}
             longitude={item.longitude}
+            image={item.images[0]}
           />
         )}
         keyExtractor={(item) => item.id}
@@ -268,12 +297,11 @@ export default function Project({ route, navigation }) {
       />
       <View
         style={{
-          position: "absolute", //use absolute position to show button on top of the map
-          top: "91%", //for center align
-          alignSelf: "flex-end",
+          position: 'absolute', //use absolute position to show button on top of the map
+          top: '91%', //for center align
+          alignSelf: 'flex-end',
           paddingRight: 22,
-        }}
-      >
+        }}>
         <Pressable style={styles.buttonAdd} onPress={addMarkerPress}>
           <Icon
             reverse={true}
@@ -292,36 +320,36 @@ const styles = StyleSheet.create({
     marginTop: StatusBar.currentHeight || 0,
   },
   item: {
-    backgroundColor: "#ffffff",
+    backgroundColor: '#ffffff',
     padding: 0,
     borderRadius: 10,
     marginVertical: 8,
     marginHorizontal: 16,
     borderWidth: 2,
-    borderColor: "#000000",
+    borderColor: '#000000',
   },
   itemHeader: {
     flex: 1,
-    backgroundColor: "#dddddd",
+    backgroundColor: '#dddddd',
     padding: 10,
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
     borderBottomWidth: 3,
-    borderBottomColor: "#000000",
+    borderBottomColor: '#000000',
   },
   itemFirst: {
-    backgroundColor: "#ffffff",
+    backgroundColor: '#ffffff',
     padding: 0,
     borderRadius: 10,
     marginVertical: 8,
     marginHorizontal: 16,
-    borderColor: "#000000",
+    borderColor: '#000000',
   },
   buttonAdd: {
     borderRadius: 50,
     borderWidth: 3,
-    borderColor: "white",
-    shadowColor: "#000",
+    borderColor: 'white',
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 7,
@@ -332,26 +360,26 @@ const styles = StyleSheet.create({
     elevation: 14,
     paddingVertical: 10,
     paddingHorizontal: 10,
-    backgroundColor: "#BC96E6",
+    backgroundColor: '#BC96E6',
   },
   itemHeaderFirst: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: '#ffffff',
     padding: 10,
     paddingBottom: 8,
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
     borderBottomWidth: 3,
-    borderBottomColor: "#909090",
+    borderBottomColor: '#909090',
   },
   title: {
     fontSize: 32,
-    backgroundColor: "#dddddd",
+    backgroundColor: '#dddddd',
   },
   titleFirst: {
     fontSize: 32,
-    fontWeight: "bold",
-    backgroundColor: "#ffffff",
+    fontWeight: 'bold',
+    backgroundColor: '#ffffff',
   },
   description: {
     fontSize: 16,
@@ -362,14 +390,15 @@ const styles = StyleSheet.create({
   itemDescriptionFirst: {
     padding: 10,
     borderBottomWidth: 3,
-    borderBottomColor: "#909090",
+    borderBottomColor: '#909090',
   },
   formContainer: {
     height: 275,
     paddingTop: 10,
   },
-  map: {
-    flex: 1,
+  image: {
+    width: 200,
+    height: 200,
   },
   formMap: {
     paddingTop: 20,
@@ -378,8 +407,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   closeButton: {
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     width: BUTTON_SIZE + BORDER_WIDTH,
     height: BUTTON_SIZE + BORDER_WIDTH,
     borderWidth: BORDER_WIDTH,
@@ -389,15 +418,15 @@ const styles = StyleSheet.create({
 const stylesForm = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: 'center',
     paddingHorizontal: 0,
-    backgroundColor: "lightblue",
+    backgroundColor: 'lightblue',
   },
   form: {
-    backgroundColor: "#ffffff",
+    backgroundColor: '#ffffff',
     padding: 20,
     borderRadius: 10,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -409,18 +438,18 @@ const stylesForm = StyleSheet.create({
   label: {
     fontSize: 16,
     marginBottom: 5,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   input: {
     height: 40,
-    borderColor: "#ddd",
+    borderColor: '#ddd',
     borderWidth: 1,
     marginBottom: 15,
     padding: 10,
     borderRadius: 5,
   },
   descriptionInput: {
-    borderColor: "#ddd",
+    borderColor: '#ddd',
     borderWidth: 1,
     marginBottom: 15,
     padding: 10,
@@ -429,7 +458,7 @@ const stylesForm = StyleSheet.create({
     borderRadius: 5,
   },
   errorText: {
-    color: "red",
+    color: 'red',
     marginBottom: 10,
   },
 });

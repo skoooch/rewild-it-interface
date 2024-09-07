@@ -1,25 +1,32 @@
-import React, { useEffect, useRef, useState } from "react";
-import Geocoder from "react-native-geocoding";
-import MapView from "react-native-maps";
-import * as ImagePicker from "expo-image-picker";
-import { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import { useEffect, useRef, useState } from 'react';
+import FIREBASE_APP from '../App.js'
+import Geocoder from 'react-native-geocoding';
+import MapView from 'react-native-maps';
+import * as ImagePicker from 'expo-image-picker';
+import { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import { fetchDataPOST, fetchDataGET, fetchDataIMAGE } from './utils/helpers';
+import { TouchableOpacity } from 'react-native-gesture-handler';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import * as ImageManipulator from 'expo-image-manipulator';
+import * as SecureStore from 'expo-secure-store';
 import {
   StyleSheet,
   Pressable,
   View,
   Region,
   TextInput,
+  ScrollView,
   Button,
   KeyboardAvoidingView,
   Modal,
+  Alert,
   Image,
   Platform,
-  TouchableOpacity,
   Text,
-} from "react-native";
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-Geocoder.init("AIzaSyA8YIQuUALtt8RvyCRFQUqcDV-Q9HxWbcU", { language: "en" }); // set the language
+Geocoder.init('AIzaSyA8YIQuUALtt8RvyCRFQUqcDV-Q9HxWbcU', { language: 'en' }); // set the language
 const constMarkers = [
   {
     latitude: 43.65005,
@@ -38,50 +45,120 @@ const BUTTON_SIZE = 35;
 const BORDER_WIDTH = 1;
 
 export default function AddProjectMap({ route, navigation }) {
+  const [response, setResponse] = useState(null);
+  const [pins, setPins] = useState([]);
   const [currLocation, setCurrLocation] = useState(route.params.initialRegion);
   const [currAddress, setCurrAddress] = useState();
-  const [markers, setMarkers] = useState(constMarkers);
   const [dragging, setDragging] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const mapRef = useRef();
 
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [errors, setErrors] = useState({});
   const [image, setImage] = useState(null);
-
+  const getPinDrops = async () => {
+    const pins_res = await fetchDataGET(
+      `pindrop/${'?delta=5&longitude='}${
+        currLocation.longitude
+      }${'&latitude='}${currLocation.latitude}`,
+      {
+      }
+    );
+    console.log(pins_res);
+    if (pins_res.data) {
+      setPins(pins_res.data);
+    } else {
+      setPins([]);
+    }
+  };
+  useEffect(() => {
+    getPinDrops();
+  }, []);
+  const [status, requestPermission] = ImagePicker.useMediaLibraryPermissions();
   const pickImage = async () => {
+    if (status?.granted === false) {
+      requestPermission();
+    }
     // No permissions request is necessary for launching the image library
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: true,
       aspect: [4, 3],
-      quality: 1,
+      quality: 0.1,
     });
 
-    console.log(result);
-
     if (!result.canceled) {
-      setImage(result.assets[0].uri);
+      const resizedPhoto = await ImageManipulator.manipulateAsync(
+        result.assets[0].uri,
+        [{ resize: { width: 300 } }], // resize to width of 300 and preserve aspect ratio
+        { compress: 0.7, format: 'png' }
+      );
+      setImage(resizedPhoto);
     }
   };
+
   const validateForm = () => {
     let errors = {};
 
-    if (!title) errors.title = "Title is required";
-    if (!description) errors.description = "Description is required";
+    if (!title) errors.title = 'Title is required';
+    if (!description) errors.description = 'Description is required';
 
     setErrors(errors);
 
     return Object.keys(errors).length === 0;
   };
-
-  const handleSubmit = () => {
+  const onRegionChangeComplete = (region: Region) => {
+    setDragging(false);
+    setCurrLocation(region);
+  };
+  const onPanDrag = () => {
+    setDragging(true);
+  };
+  const onMarkerPress = (marker: Marker) => {
+    return;
+  };
+  const addProjectPress = () => {
+    setModalVisible(true);
+  };
+  const handleSubmit = async () => {
     if (validateForm()) {
-      console.log("Submitted", title, description);
-      setTitle("");
-      setDescription("");
-      setErrors({});
+      console.log('Submitted', title, description);
+      let currUser = await SecureStore.getItemAsync('currUser');
+      try {
+        console.log({"EH": {
+          name: title,
+          description: description,
+          pindrop_latitude: currLocation.latitude,
+          pindrop_longitude: currLocation.longitude,
+          followers: [currUser],
+        }})
+        const response = await fetchDataPOST('project/', {
+          name: title,
+          description: description,
+          pindrop_latitude: currLocation.latitude,
+          pindrop_longitude: currLocation.longitude,
+          followers: [currUser],
+        });
+        const image_response = await fetchDataIMAGE('image/', {
+          uri: image.uri,
+          name: 'test',
+          type: 'image/png',
+        });
+        const add_image_response = await fetchDataPOST(
+          `timeline/post/${response.timeline.posts[0].timeline_post_id}/image/${image_response.image_id}`,
+        );
+        console.log(add_image_response);
+        
+        navigation.navigate('View Project', {
+          project_id: response.project_id,
+          currUser: currUser,
+        });
+        console.log(add_image_response);
+        setModalVisible(false);
+      } catch (err) {
+        Alert.alert('Error creating project.', err.message);
+      }
     }
   };
 
@@ -91,51 +168,35 @@ export default function AddProjectMap({ route, navigation }) {
         var addressComponents = json.results[0].address_components;
         console.log(
           [addressComponents[0].long_name, addressComponents[1].long_name].join(
-            " "
+            ' '
           )
         );
         setCurrAddress(
           [addressComponents[0].long_name, addressComponents[1].long_name].join(
-            " "
+            ' '
           )
         );
       })
       .catch((error) => console.warn(error));
   }, [currLocation]);
 
-  const onRegionChangeComplete = (region: Region) => {
-    setDragging(false);
-    setCurrLocation(region);
-  };
-  const onPanDrag = () => {
-    setDragging(true);
-  };
-  const onMarkerPress = (marker: Marker) => {
-    console.log(marker);
-  };
-  const imageUpload = () => {
-    launchImageLibrary(setResponse);
-  };
-  const addProjectPress = () => {
-    setModalVisible(true);
-  };
   return (
     <View style={styles.container}>
       <Modal
-        animationType="slide"
+        style={{ paddingTop: 10 }}
         visible={modalVisible}
-        presentationStyle="pageSheet"
-      >
-        <View style={{ flex: 1, backgroundColor: "lightblue", padding: 15 }}>
+        animationType="slide"
+        presentationStyle="pageSheet">
+        <KeyboardAwareScrollView
+          style={{ flex: 1, backgroundColor: 'lightblue', padding: 15, paddingBottom:30 }}>
           <TouchableOpacity
             onPress={() => {
               setModalVisible(false);
             }}
-            style={[styles.closeButton, { backgroundColor: "white" }]}
-          >
-            <Icon name={"close"} size={BUTTON_SIZE / 2} />
+            style={[styles.closeButton, { backgroundColor: 'white' }]}>
+            <Icon name={'close'} size={BUTTON_SIZE / 2} />
           </TouchableOpacity>
-          <View style={styles.formContainer}>
+          <View style={{...styles.formContainer, marginVertical: 10}}>
             <MapView
               style={styles.formMap}
               initialRegion={{
@@ -143,101 +204,110 @@ export default function AddProjectMap({ route, navigation }) {
                 longitude: currLocation.longitude,
                 latitudeDelta: 0.007,
                 longitudeDelta: 0.007,
-              }}
-            >
-              <Marker key={0} coordinate={currLocation} />
+              }}>
+              <Marker
+                key={0}
+                coordinate={{
+                  latitude: currLocation.latitude,
+                  longitude: currLocation.longitude,
+                  latitudeDelta: 0.01,
+                  longitudeDelta: 0.01,
+                }}
+              />
             </MapView>
           </View>
-          <KeyboardAvoidingView
-            behavior="padding"
-            keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
-            style={stylesForm.container}
-          >
-            <View style={stylesForm.form}>
-              <Text style={stylesForm.label}>Project Title</Text>
-              <TextInput
-                style={stylesForm.input}
-                placeholder="Enter your title"
-                value={title}
-                onChangeText={setTitle}
-              />
-              <Text style={stylesForm.label}>Upload Images</Text>
-              <Button
-                title="Pick an image from camera roll"
-                onPress={pickImage}
-              />
-              {image && <Image source={{ uri: image }} style={styles.image} />}
+          <View style={{...stylesForm.form, marginBottom: 50}}>
+            <Text style={stylesForm.label}>Project Title</Text>
+            <TextInput
+              style={stylesForm.input}
+              placeholder="Enter your title"
+              value={title}
+              onChangeText={setTitle}
+            />
+            {errors.title ? (
+              <Text style={stylesForm.errorText}>{errors.title}</Text>
+            ) : null}
+            <Text style={stylesForm.label}>Upload Images</Text>
 
-              <Text style={stylesForm.label}>Project Description</Text>
-              <TextInput
-                multiline={true}
-                numberOfLines={10}
-                style={stylesForm.descriptionInput}
-                placeholder="Enter your description"
-                value={description}
-                onChangeText={setDescription}
-              />
-              {errors.description ? (
-                <Text style={stylesForm.errorText}>{errors.description}</Text>
-              ) : null}
+            <Button
+              title="Pick an image from camera roll"
+              onPress={pickImage}
+            />
+            {image && (
+              <Image source={{ uri: image.uri }} style={styles.image} />
+            )}
+            <Text style={stylesForm.label}>Project Description</Text>
+            <TextInput
+              multiline={true}
+              numberOfLines={10}
+              style={stylesForm.descriptionInput}
+              placeholder="Enter your description"
+              value={description}
+              onChangeText={setDescription}
+            />
+            {errors.description ? (
+              <Text style={stylesForm.errorText}>{errors.description}</Text>
+            ) : null}
 
-              <Button title="Create" onPress={handleSubmit} />
-            </View>
-          </KeyboardAvoidingView>
-        </View>
+            <Button title="Create" onPress={handleSubmit} />
+          </View>
+        </KeyboardAwareScrollView>
       </Modal>
       <MapView
         style={styles.map}
         initialRegion={currLocation}
         onRegionChangeComplete={onRegionChangeComplete}
         onRegionChange={onPanDrag}
-        ref={mapRef}
-      >
-        {markers.map((marker, index) => (
+        ref={mapRef}>
+        {pins.map((marker, index) => (
           <Marker
-            key={index}
-            coordinate={marker}
-            onPress={() => onMarkerPress(marker)}
+            key={marker.pindrop_id}
+            coordinate={{
+              latitude: marker.latitude,
+              longitude: marker.longitude,
+              latitudeDelta: 0.01,
+              longitudeDelta: 0.01,
+            }}
           />
         ))}
       </MapView>
       <View
         style={{
-          position: "absolute", //use absolute position to show button on top of the map
-          top: "50%", //for center align
-          alignSelf: "center",
-        }}
-      >
+          position: 'absolute', //use absolute position to show button on top of the map
+          top: '82%', //for center align
+          alignSelf: 'center',
+        }}>
+        <TouchableOpacity
+          style={{
+            ...styles.button,
+          }}
+          onPress={() => addProjectPress()}>
+          <Text style={styles.text}>Start Project</Text>
+        </TouchableOpacity>
+      </View>
+      <View
+        style={{
+          position: 'absolute', //use absolute position to show button on top of the map
+          top: '50%', //for center align
+          alignSelf: 'center',
+        }}>
         <Pressable
           style={
             dragging ? styles.transparentButtonMarker : styles.buttonMarker
           }
-          disabled
-        >
+          disabled>
           <Text style={styles.textMarker}></Text>
         </Pressable>
       </View>
       <View
         style={{
-          position: "absolute", //use absolute position to show button on top of the map
-          top: "82%", //for center align
-          alignSelf: "center",
-        }}
-      >
-        <Pressable style={styles.button} onPress={addProjectPress}>
-          <Text style={styles.text}>Start Project</Text>
-        </Pressable>
-      </View>
-      <View
-        style={{
-          position: "absolute", //use absolute position to show button on top of the map
-          top: "91.5%", //for center align
-          alignSelf: "center",
-        }}
-      >
+          position: 'absolute', //use absolute position to show button on top of the map
+          top: '91.5%', //for center align
+          alignSelf: 'center',
+        }}>
         <Pressable style={styles.addressButton} disabled>
           <Text style={styles.addressText}>
-            {dragging ? "Finding address..." : currAddress}
+            {dragging ? 'Finding address...' : currAddress}
           </Text>
         </Pressable>
       </View>
@@ -263,8 +333,8 @@ const styles = StyleSheet.create({
   button: {
     borderRadius: 50,
     borderWidth: 3,
-    borderColor: "#F2D8F9",
-    shadowColor: "#000",
+    borderColor: '#F2D8F9',
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 7,
@@ -275,11 +345,11 @@ const styles = StyleSheet.create({
     elevation: 14,
     paddingVertical: 10,
     paddingHorizontal: 10,
-    backgroundColor: "#F2D8F9",
+    backgroundColor: '#F2D8F9',
   },
   closeButton: {
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     width: BUTTON_SIZE + BORDER_WIDTH,
     height: BUTTON_SIZE + BORDER_WIDTH,
     borderWidth: BORDER_WIDTH,
@@ -288,64 +358,68 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 30,
     lineHeight: 30,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     letterSpacing: 0.25,
-    color: "#541d4d",
+    color: '#541d4d',
   },
   addressButton: {
     borderRadius: 5,
     borderWidth: 3,
-    borderColor: "#541d4d",
+    borderColor: '#541d4d',
 
     elevation: 14,
     paddingVertical: 10,
     paddingHorizontal: 10,
-    backgroundColor: "#F2D8F9",
+    backgroundColor: '#F2D8F9',
   },
   addressText: {
     fontSize: 24,
     lineHeight: 24,
 
     letterSpacing: 0.25,
-    color: "#541d4d",
+    color: '#541d4d',
   },
   buttonMarker: {
     borderRadius: 50,
     borderWidth: 2,
-    borderColor: "white",
+    borderColor: 'white',
     paddingVertical: 3,
     paddingHorizontal: 10,
-    backgroundColor: "darkblue",
+    backgroundColor: 'darkblue',
   },
   transparentButtonMarker: {
     borderRadius: 50,
     borderWidth: 2,
-    borderColor: "white",
+    borderColor: 'white',
     opacity: 0.5,
     paddingVertical: 2,
     paddingHorizontal: 9,
-    backgroundColor: "darkblue",
+    backgroundColor: 'darkblue',
   },
   textMarker: {
     fontSize: 24,
     lineHeight: 24,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     letterSpacing: 0.25,
-    color: "white",
+    color: 'white',
+  },
+  image: {
+    width: 200,
+    height: 200,
   },
 });
 const stylesForm = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: 'center',
     paddingHorizontal: 0,
-    backgroundColor: "lightblue",
+    backgroundColor: 'lightblue',
   },
   form: {
-    backgroundColor: "#ffffff",
+    backgroundColor: '#ffffff',
     padding: 20,
     borderRadius: 10,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -357,18 +431,18 @@ const stylesForm = StyleSheet.create({
   label: {
     fontSize: 16,
     marginBottom: 5,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   input: {
     height: 40,
-    borderColor: "#ddd",
+    borderColor: '#ddd',
     borderWidth: 1,
     marginBottom: 15,
     padding: 10,
     borderRadius: 5,
   },
   descriptionInput: {
-    borderColor: "#ddd",
+    borderColor: '#ddd',
     borderWidth: 1,
     marginBottom: 15,
     padding: 10,
@@ -377,7 +451,7 @@ const stylesForm = StyleSheet.create({
     borderRadius: 5,
   },
   errorText: {
-    color: "red",
+    color: 'red',
     marginBottom: 10,
   },
 });

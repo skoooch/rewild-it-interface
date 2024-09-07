@@ -1,8 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
-import MapView from "react-native-maps";
-import { fetchDataGET } from "./utils/helpers";
-import { Marker, Callout, PROVIDER_GOOGLE } from "react-native-maps";
-import Carousel, { Pagination } from "react-native-x-carousel";
+import React, { useEffect, useRef, useState } from 'react';
+import MapView from 'react-native-maps';
+import { fetchDataGET } from './utils/helpers';
+import { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps';
+import * as SecureStore from 'expo-secure-store';
+import { useIsFocused } from '@react-navigation/native';
 import {
   StyleSheet,
   Pressable,
@@ -11,7 +12,7 @@ import {
   Region,
   Button,
   Text,
-} from "react-native";
+} from 'react-native';
 const INIT_ZOOM = 0.05;
 const TORONTO_REGION = {
   latitude: 43.65,
@@ -19,25 +20,34 @@ const TORONTO_REGION = {
   latitudeDelta: INIT_ZOOM,
   longitudeDelta: INIT_ZOOM,
 };
-export default function Map({ navigation }) {
+export default function Map({ route, navigation }) {
+  const isFocused = useIsFocused();
   const [pins, setPins] = useState([]);
+  const [currUser, setCurrUser] = useState("");
   const [currProj, setCurrentProj] = useState({});
-  const currUser = "7c441471-befb-482d-a061-f93279c0d6e0";
   const [currLocation, setCurrLocation] = useState(TORONTO_REGION);
   const getPinDrops = async () => {
-    const pins_res = await fetchDataGET("pindrop/", {
-      longitude: currLocation.longitude,
-      latitude: currLocation.latitude,
-    });
+    let pins_res = null;
+    try {
+      pins_res = await fetchDataGET(
+        `pindrop/${'?delta=5&longitude='}${
+          currLocation.longitude
+        }${'&latitude='}${currLocation.latitude}`
+      );
+    } catch (e) {
+      console.log(e);
+    }
     if (pins_res.data) {
       setPins(pins_res.data);
     } else {
       setPins([]);
     }
+    let currUser = await SecureStore.getItemAsync('currUser');
+    setCurrUser(currUser)
   };
   useEffect(() => {
-    getPinDrops();
-  }, []);
+    if (isFocused) getPinDrops();
+  }, [isFocused]);
 
   const mapRef = useRef();
 
@@ -45,17 +55,18 @@ export default function Map({ navigation }) {
     setCurrLocation(region);
   };
   const onMarkerPress = async (marker) => {
-    const pins_res = await fetchDataGET(`project/${marker.project_id}`);
+    const pins_res = await fetchDataGET(`project/${marker.project_id}/`, {});
     setCurrentProj(pins_res.data);
   };
   const addMarkerPress = () => {
-    navigation.navigate("Add Project", {
+    navigation.navigate('Add Project', {
       initialRegion: currLocation,
       currUser: currUser,
     });
   };
   const viewProject = () => {
-    navigation.navigate("View Project", {
+    console.log(currUser);
+    navigation.navigate('View Project', {
       project_id: currProj.project_id,
       currUser: currUser,
     });
@@ -66,8 +77,7 @@ export default function Map({ navigation }) {
         style={styles.map}
         initialRegion={TORONTO_REGION}
         onRegionChangeComplete={onRegionChange}
-        ref={mapRef}
-      >
+        ref={mapRef}>
         {pins.map((marker) => (
           <Marker
             key={marker.pindrop_id}
@@ -77,51 +87,46 @@ export default function Map({ navigation }) {
               latitudeDelta: 0.01,
               longitudeDelta: 0.01,
             }}
-            onPress={() => onMarkerPress(marker)}
-          >
+            onPress={() => onMarkerPress(marker)}>
             <Callout>
               <View
                 style={{
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "100%",
-                }}
-              >
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '100%',
+                }}>
                 <Text
                   style={{
-                    fontWeight: "bold",
+                    fontWeight: 'bold',
                     fontSize: 20,
                     paddingBottom: 10,
-                  }}
-                >
+                  }}>
                   {currProj.name}
                 </Text>
-                <View style={{ paddingBottom: 10, alignSelf: "flex-start" }}>
+                <View style={{ paddingBottom: 10, alignSelf: 'flex-start' }}>
                   <Image
                     style={{
-                      resizeMode: "contain",
+                      resizeMode: 'contain',
                       borderRadius: 10,
                       paddingBottom: 10,
                     }}
-                    source={require("../assets/test_image.jpg")}
+                    source={require('../assets/test_image.jpg')}
                   />
                 </View>
                 <Pressable
                   style={{
                     borderRadius: 5,
                     padding: 5,
-                    backgroundColor: "#94D6B3",
+                    backgroundColor: '#94D6B3',
                     paddingHorizontal: 10,
                   }}
-                  onPress={viewProject}
-                >
+                  onPress={viewProject}>
                   <Text
                     style={{
-                      fontWeight: "bold",
+                      fontWeight: 'bold',
                       fontSize: 20,
-                    }}
-                  >
+                    }}>
                     View Project
                   </Text>
                 </Pressable>
@@ -132,12 +137,11 @@ export default function Map({ navigation }) {
       </MapView>
       <View
         style={{
-          position: "absolute", //use absolute position to show button on top of the map
-          top: "87%", //for center align
-          alignSelf: "flex-end",
+          position: 'absolute', //use absolute position to show button on top of the map
+          top: '87%', //for center align
+          alignSelf: 'flex-end',
           paddingRight: 22,
-        }}
-      >
+        }}>
         <Pressable style={styles.button} onPress={addMarkerPress}>
           <Text style={styles.text}>+</Text>
         </Pressable>
@@ -156,8 +160,8 @@ const styles = StyleSheet.create({
   button: {
     borderRadius: 50,
     borderWidth: 3,
-    borderColor: "white",
-    shadowColor: "#000",
+    borderColor: 'white',
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 7,
@@ -168,13 +172,13 @@ const styles = StyleSheet.create({
     elevation: 14,
     paddingVertical: 0,
     paddingHorizontal: 10,
-    backgroundColor: "#BC96E6",
+    backgroundColor: '#BC96E6',
   },
   text: {
     fontSize: 60,
     lineHeight: 60,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     letterSpacing: 0.25,
-    color: "white",
+    color: 'white',
   },
 });
