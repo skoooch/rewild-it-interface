@@ -163,7 +163,6 @@ export default function AddProjectMap({ route, navigation }) {
           project_id: response.project_id,
           currUser: currUser,
         });
-        console.log(add_image_response);
         setModalVisible(false);
       } catch (err) {
         Alert.alert('Error creating project.', err.message);
