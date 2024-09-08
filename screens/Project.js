@@ -58,13 +58,15 @@ export default function Project({ route, navigation }) {
       const infoUnformatted = project_res.data.timeline.posts[0];
       const date = new Date(infoUnformatted.created_ts.split("T")[0]);
       let author = "";
+      console.log(infoUnformatted);
       if (infoUnformatted.author_id) {
+        console.log("here");
         const user_object = await fetchDataGET(
           `user/${infoUnformatted.author_id}/`
         );
         author = user_object.data.username;
       }
-
+      console.log(author);
       const projectInfo = {
         id: infoUnformatted.timeline_post_id,
         prev_id: null,
@@ -358,7 +360,17 @@ export default function Project({ route, navigation }) {
           >
             <Icon name={"close"} size={BUTTON_SIZE / 2} />
           </TouchableOpacity>
-          <View style={{ ...stylesForm.form, marginTop: 30 }}>
+          <Text
+            style={{
+              ...styles.title,
+              backgroundColor: "lightblue",
+              marginTop: 10,
+              textAlign: "center",
+            }}
+          >
+            Create Timeline Post
+          </Text>
+          <View style={{ ...stylesForm.form, marginTop: 20 }}>
             <Text style={stylesForm.label}>Post Title</Text>
             <TextInput
               style={stylesForm.input}
@@ -530,7 +542,7 @@ const styles = StyleSheet.create({
   },
   titleFirst: {
     fontSize: 32,
-    fontWeight: "bold",
+    fontWeight: "900",
     backgroundColor: "#ffffff",
   },
   description: {
