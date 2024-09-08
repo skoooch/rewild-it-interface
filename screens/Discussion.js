@@ -26,6 +26,7 @@ export default function Discussion({ route, navigation }) {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [message, setMessage] = useState("");
   const inputRef = React.useRef(null);
+  const [refreshing, setRefreshing] = useState(false);
   const renderItem = ({ item }) => {
     return <CommentItem comment={item} />;
   };
@@ -151,6 +152,7 @@ export default function Discussion({ route, navigation }) {
     );
   };
   const getDiscussionBoard = async () => {
+    setRefreshing(true);
     const project_res = await fetchDataGET(
       `project/${route.params.project_id}/`
     );
@@ -159,6 +161,7 @@ export default function Discussion({ route, navigation }) {
       project_res.data.discussion_board.root.discussion_board_message_id
     );
     setDiscussionBoardObject(project_res.data.discussion_board);
+    setRefreshing(false);
   };
   async function flatten(parent_id, comments) {
     if (comments == []) return [];
@@ -231,6 +234,8 @@ export default function Discussion({ route, navigation }) {
     >
       <View style={styles.container}>
         <FlatList
+          onRefresh={getDiscussionBoard}
+          refreshing={refreshing}
           style={{ marginTop: 0 }}
           data={listComment}
           renderItem={renderItem}
