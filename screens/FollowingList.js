@@ -98,7 +98,7 @@ export default function FollowingList() {
                   color: "#606060",
                 }}
               >
-                {`Created ${date} by ${author}`}
+                {`Created ${date}`}
               </Text>
               <Icon
                 reverse={true}
