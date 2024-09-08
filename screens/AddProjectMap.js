@@ -176,7 +176,7 @@ export default function AddProjectMap({ route, navigation }) {
   return (
     <View style={styles.container}>
       <Modal
-        style={{ paddingTop: 10 }}
+        style={{ paddingTop: 10, backgroundColor: "lightblue" }}
         visible={modalVisible}
         animationType="slide"
         presentationStyle="pageSheet"
@@ -387,7 +387,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 30,
     lineHeight: 30,
-    fontWeight: "bold",
+    fontWeight: 900,
     letterSpacing: 0.25,
     color: "#541d4d",
   },
