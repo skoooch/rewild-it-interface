@@ -28,15 +28,13 @@ const BUTTON_SIZE = 35;
 const BORDER_WIDTH = 1;
 export default function FollowingList() {
   const isFocused = useIsFocused();
-  const currUser = '919170fd-8986-4b01-8d99-7a88bf2c5aac';
   const [userObj, setUserObj] = useState({});
   const [goToProj, setGoToProj] = useState('');
   const [data, setData] = useState([]);
   const navigation = useNavigation();
   const getProjects = async () => {
     let currUser = await SecureStore.getItemAsync('currUser');
-    const user_object = await fetchDataGET(`user/${currUser}/`, {
-    });
+    const user_object = await fetchDataGET(`user/${currUser}/`, {});
     setUserObj(user_object.data);
     let temp_data = [];
     for (let i = 0; i < user_object.data.follows.length; i++) {
@@ -44,10 +42,23 @@ export default function FollowingList() {
         `project/${user_object.data.follows[i]}/`
       );
       console.log(proj_response);
+      const infoUnformatted = proj_response.data.timeline.posts[0];
+      const date = new Date(infoUnformatted.created_ts.split('T')[0]);
+      let author = '';
+      if (infoUnformatted.author_id) {
+        const author_object = await fetchDataGET(
+          `user/${infoUnformatted.author_id}/`
+        );
+        author = author_object.data.username;
+      }
       temp_data.push({
         id: user_object.data.follows[i],
         title: proj_response.data.name,
         description: proj_response.data.description,
+        author: author,
+        date: `${date.toLocaleString('default', {
+          month: 'long',
+        })} ${date.getDay()}, ${date.getFullYear()}`,
       });
     }
     setData(temp_data);
@@ -56,72 +67,77 @@ export default function FollowingList() {
     if (isFocused) getProjects();
   }, [isFocused]);
   React.useEffect(() => {
-    if (goToProj != '') {
-      console.log(goToProj);
-      navigation.navigate('View Project', {
-        project_id: goToProj,
-        currUser: currUser,
-      });
-      setGoToProj('');
-    }
+    const navigateToProj = async () => {
+      let currUser = await SecureStore.getItemAsync('currUser');
+      if (goToProj != '') {
+        console.log(goToProj);
+        navigation.navigate('View Project', {
+          project_id: goToProj,
+          currUser: currUser,
+        });
+        setGoToProj('');
+      }
+    };
+    navigateToProj();
   }, [goToProj, navigation]);
-  const Item = ({ id, description, title }) => (
+  const Item = ({ id, description, title, author, date }) => (
     <View>
-    <TouchableHighlight onPress={() => setGoToProj(id)}>
-      <View style={styles.item}>
-        <View style={styles.itemHeader}>
-          <View
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              minWidth: '100%',
-              flexDirection: 'row',
-            }}>
-            <Text
+      <TouchableHighlight onPress={() => setGoToProj(id)}>
+        <View style={styles.item}>
+          <View style={styles.itemHeader}>
+            <View
               style={{
-                fontSize: 12,
-                backgroundColor: '#ffffff',
-                color: '#606060',
+                display: 'flex',
+                justifyContent: 'space-between',
+                minWidth: '100%',
+                flexDirection: 'row',
               }}>
-              {`April 18th, 2024 by ${userObj.username}`}
-            </Text>
-            <Icon
-              reverse={true}
-              style={{ alignSelf: 'flex-start' }}
-              name="dots-horizontal"
-              size={30}
-              color="b0b0b0"
-            />
+              <Text
+                style={{
+                  fontSize: 12,
+                  backgroundColor: '#ffffff',
+                  color: '#606060',
+                }}>
+                {`Created ${date} by ${author}`}
+              </Text>
+              <Icon
+                reverse={true}
+                style={{ alignSelf: 'flex-start' }}
+                name="dots-horizontal"
+                size={30}
+                color="b0b0b0"
+              />
+            </View>
+            <Text style={styles.title}>{title}</Text>
           </View>
-          <Text style={styles.title}>{title}</Text>
-        </View>
-        <View style={styles.itemDescription}>
-          <View
-            style={{
-              padding: 10,
-              paddingBottom: 0,
-              borderRadius: 5,
-              backgroundColor: '#ffffff',
-            }}>
-            <Text numberOfLines={3} style={styles.description}>
-              {description}
-            </Text>
+          <View style={styles.itemDescription}>
+            <View
+              style={{
+                padding: 10,
+                paddingBottom: 0,
+                borderRadius: 5,
+                backgroundColor: '#ffffff',
+              }}>
+              <Text numberOfLines={3} style={styles.description}>
+                {description}
+              </Text>
+            </View>
           </View>
         </View>
-      </View>
-    </TouchableHighlight></View>
+      </TouchableHighlight>
+    </View>
   );
   return (
-    <View style={{ flex: 1, backgroundColor: '#ffffff'}}>
-        <Text
-            style={{
-              fontSize: 40,
-              textAlign: 'center',
-              paddingVertical: 20,
-              color: '#010101',
-              fontWeight: '900',
-            }}>
-            My Projects
+    <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
+      <Text
+        style={{
+          fontSize: 40,
+          textAlign: 'center',
+          paddingVertical: 20,
+          color: '#010101',
+          fontWeight: '900',
+        }}>
+        My Projects
       </Text>
       <FlatList
         data={data}
@@ -130,6 +146,8 @@ export default function FollowingList() {
             title={item.title}
             id={item.id}
             description={item.description}
+            author={item.author}
+            date={item.date}
           />
         )}
         keyExtractor={(item) => item.id}

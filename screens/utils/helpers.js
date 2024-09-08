@@ -12,8 +12,8 @@ const FIREBASE_API_KEY = 'AIzaSyAV9vA2i86EEGMHY-opLiKuNC_QLPLNPfg';
 export async function fetchDataPOST(route, body) {
   const token = await SecureStore.getItem('accessToken');
   var myHeaders = new Headers();
-  myHeaders.append("Content-Type", "application/json");
-  myHeaders.append("Authorization", `Bearer ${token}`);
+  myHeaders.append('Content-Type', 'application/json');
+  myHeaders.append('Authorization', `Bearer ${token}`);
 
   var raw = JSON.stringify(body);
 
@@ -21,10 +21,10 @@ export async function fetchDataPOST(route, body) {
     method: 'POST',
     headers: myHeaders,
     body: raw,
-    redirect: 'follow'
+    redirect: 'follow',
   };
 
-  let res = await fetch(`${URI}${route}`, requestOptions)
+  let res = await fetch(`${URI}${route}`, requestOptions);
   if (!(199 < res.status && res.status < 300)) {
     console.log(`${res.status} ${res.statusText}, Error`);
     throw new Error(`${res.status} ${res.statusText}, Error:`);
@@ -36,8 +36,6 @@ export async function fetchDataPOST(route, body) {
     const resText = await res.text();
     return resText;
   }
-
-
 }
 /**
  * Helper function to make a server side GET request. Throws an error if the request fails
@@ -224,8 +222,8 @@ export async function fetchDataDELETE(route, body) {
   // const session = await fetchSession()
   const token = await SecureStore.getItem('accessToken');
   var myHeaders = new Headers();
-  myHeaders.append("Content-Type", "application/json");
-  myHeaders.append("Authorization", `Bearer ${token}`);
+  myHeaders.append('Content-Type', 'application/json');
+  myHeaders.append('Authorization', `Bearer ${token}`);
 
   var raw = JSON.stringify(body);
 
@@ -233,16 +231,20 @@ export async function fetchDataDELETE(route, body) {
     method: 'DELETE',
     headers: myHeaders,
     body: raw,
-    redirect: 'follow'
+    redirect: 'follow',
   };
 
-  let response = await fetch(`${URI}${route}`, requestOptions)
-  const resJson = await response.json();
-    return {
-      error: false,
-      data: resJson,
-      err_message: '',
-    }
+  let res = await fetch(`${URI}${route}`, requestOptions);
+  if (!(199 < res.status && res.status < 300)) {
+    console.log(`${res.status} ${res.statusText}, Error`);
+    throw new Error(`${res.status} ${res.statusText}, Error:`);
+  }
+  try {
+    const resJson = await res.json();
+    return resJson;
+  } catch (e) {
+    return res;
+  }
 }
 
 /**

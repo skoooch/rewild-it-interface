@@ -106,21 +106,25 @@ export default function Discussion({ route, navigation }) {
             flexDirection: 'row',
             alignItems: 'center',
           }}>
-          <TouchableHighlight
-            style={{ borderRadius: 10 }}
-            onPress={() => decrement(comment.id)}>
-            <View>
-              <Icon name="angle-up" type="font-awesome" size={15} />
-            </View>
-          </TouchableHighlight>
-          <Text style={styles.votes}>{comment.votes}</Text>
-          <TouchableHighlight
-            style={{ borderRadius: 10 }}
-            onPress={() => decrement(comment)}>
-            <View>
-              <Icon name="angle-down" type="font-awesome" size={15} />
-            </View>
-          </TouchableHighlight>
+          {false && (
+            <>
+              <TouchableHighlight
+                style={{ borderRadius: 10 }}
+                onPress={() => decrement(comment.id)}>
+                <View>
+                  <Icon name="angle-up" type="font-awesome" size={15} />
+                </View>
+              </TouchableHighlight>
+              <Text style={styles.votes}>{comment.votes}</Text>
+              <TouchableHighlight
+                style={{ borderRadius: 10 }}
+                onPress={() => decrement(comment)}>
+                <View>
+                  <Icon name="angle-down" type="font-awesome" size={15} />
+                </View>
+              </TouchableHighlight>{' '}
+            </>
+          )}
           {comment.type != 3 && (
             <TouchableHighlight
               style={{ marginLeft: 10, borderRadius: 10 }}
@@ -309,13 +313,13 @@ const styles = StyleSheet.create({
   },
   commentText: {
     marginTop: 5,
-    fontSize: 12,
+    fontSize: 14,
     color: 'black',
   },
   profileImg: {
-    height: 24,
-    width: 24,
-    borderRadius: 12,
+    height: 30,
+    width: 30,
+    borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'seagreen',

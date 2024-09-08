@@ -1,13 +1,13 @@
-import { useEffect, useRef, useState } from "react";
-import Geocoder from "react-native-geocoding";
-import MapView from "react-native-maps";
-import * as ImagePicker from "expo-image-picker";
-import { Marker, PROVIDER_GOOGLE } from "react-native-maps";
-import { fetchDataPOST, fetchDataGET, fetchDataIMAGE } from "./utils/helpers";
-import { TouchableOpacity } from "react-native-gesture-handler";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import * as ImageManipulator from "expo-image-manipulator";
-import * as SecureStore from "expo-secure-store";
+import { useEffect, useRef, useState } from 'react';
+import Geocoder from 'react-native-geocoding';
+import MapView from 'react-native-maps';
+import * as ImagePicker from 'expo-image-picker';
+import { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import { fetchDataPOST, fetchDataGET, fetchDataIMAGE } from './utils/helpers';
+import { TouchableOpacity } from 'react-native-gesture-handler';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import * as ImageManipulator from 'expo-image-manipulator';
+import * as SecureStore from 'expo-secure-store';
 
 import {
   StyleSheet,
@@ -21,9 +21,9 @@ import {
   Image,
   Platform,
   Text,
-} from "react-native";
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-Geocoder.init("AIzaSyA8YIQuUALtt8RvyCRFQUqcDV-Q9HxWbcU", { language: "en" }); // set the language
+} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+Geocoder.init('AIzaSyA8YIQuUALtt8RvyCRFQUqcDV-Q9HxWbcU', { language: 'en' }); // set the language
 const BUTTON_SIZE = 35;
 const BORDER_WIDTH = 1;
 
@@ -33,17 +33,17 @@ export default function AddProjectMap({ route, navigation }) {
   const [currAddress, setCurrAddress] = useState();
   const [dragging, setDragging] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [errors, setErrors] = useState({});
   const [image, setImage] = useState(null);
   const mapRef = useRef();
 
   const getPinDrops = async () => {
     const pins_res = await fetchDataGET(
-      `pindrop/${"?delta=5&longitude="}${
+      `pindrop/${'?delta=5&longitude='}${
         currLocation.longitude
-      }${"&latitude="}${currLocation.latitude}`,
+      }${'&latitude='}${currLocation.latitude}`,
       {}
     );
     console.log(pins_res);
@@ -74,7 +74,7 @@ export default function AddProjectMap({ route, navigation }) {
       const resizedPhoto = await ImageManipulator.manipulateAsync(
         result.assets[0].uri,
         [{ resize: { width: 300 } }], // resize to width of 300 and preserve aspect ratio
-        { compress: 0.7, format: "png" }
+        { compress: 0.7, format: 'png' }
       );
       setImage(resizedPhoto);
     }
@@ -96,7 +96,7 @@ export default function AddProjectMap({ route, navigation }) {
       const resizedPhoto = await ImageManipulator.manipulateAsync(
         result.assets[0].uri,
         [{ resize: { width: 300 } }], // resize to width of 300 and preserve aspect ratio
-        { compress: 0.7, format: "png" }
+        { compress: 0.7, format: 'png' }
       );
       setImage(resizedPhoto);
     }
@@ -105,8 +105,8 @@ export default function AddProjectMap({ route, navigation }) {
   const validateForm = () => {
     let errors = {};
 
-    if (!title) errors.title = "Title is required";
-    if (!description) errors.description = "Description is required";
+    if (!title) errors.title = 'Title is required';
+    if (!description) errors.description = 'Description is required';
 
     setErrors(errors);
 
@@ -129,8 +129,8 @@ export default function AddProjectMap({ route, navigation }) {
 
   const handleSubmit = async () => {
     if (validateForm()) {
-      console.log("Submitted", title, description);
-      let currUser = await SecureStore.getItemAsync("currUser");
+      console.log('Submitted', title, description);
+      let currUser = await SecureStore.getItemAsync('currUser');
       try {
         console.log({
           EH: {
@@ -141,31 +141,32 @@ export default function AddProjectMap({ route, navigation }) {
             followers: [currUser],
           },
         });
-        const response = await fetchDataPOST("project/", {
+        const response = await fetchDataPOST('project/', {
           name: title,
           description: description,
           pindrop_latitude: currLocation.latitude,
           pindrop_longitude: currLocation.longitude,
           followers: [currUser],
         });
-        const image_response = await fetchDataIMAGE("image/", {
-          uri: image.uri,
-          name: "test",
-          type: "image/png",
-        });
-        const add_image_response = await fetchDataPOST(
-          `timeline/post/${response.timeline.posts[0].timeline_post_id}/image/${image_response.image_id}`
-        );
-        console.log(add_image_response);
+        if (image) {
+          const image_response = await fetchDataIMAGE('image/', {
+            uri: image.uri,
+            name: 'test',
+            type: 'image/png',
+          });
+          const add_image_response = await fetchDataPOST(
+            `timeline/post/${response.timeline.posts[0].timeline_post_id}/image/${image_response.image_id}`
+          );
+        }
 
-        navigation.navigate("View Project", {
+        navigation.navigate('View Project', {
           project_id: response.project_id,
           currUser: currUser,
         });
         console.log(add_image_response);
         setModalVisible(false);
       } catch (err) {
-        Alert.alert("Error creating project.", err.message);
+        Alert.alert('Error creating project.', err.message);
       }
     }
   };
@@ -176,12 +177,12 @@ export default function AddProjectMap({ route, navigation }) {
         var addressComponents = json.results[0].address_components;
         console.log(
           [addressComponents[0].long_name, addressComponents[1].long_name].join(
-            " "
+            ' '
           )
         );
         setCurrAddress(
           [addressComponents[0].long_name, addressComponents[1].long_name].join(
-            " "
+            ' '
           )
         );
       })
@@ -194,23 +195,20 @@ export default function AddProjectMap({ route, navigation }) {
         style={{ paddingTop: 10 }}
         visible={modalVisible}
         animationType="slide"
-        presentationStyle="pageSheet"
-      >
+        presentationStyle="pageSheet">
         <KeyboardAwareScrollView
           style={{
             flex: 1,
-            backgroundColor: "lightblue",
+            backgroundColor: 'lightblue',
             padding: 15,
             paddingBottom: 30,
-          }}
-        >
+          }}>
           <TouchableOpacity
             onPress={() => {
               setModalVisible(false);
             }}
-            style={[styles.closeButton, { backgroundColor: "white" }]}
-          >
-            <Icon name={"close"} size={BUTTON_SIZE / 2} />
+            style={[styles.closeButton, { backgroundColor: 'white' }]}>
+            <Icon name={'close'} size={BUTTON_SIZE / 2} />
           </TouchableOpacity>
           <View style={{ ...styles.formContainer, marginVertical: 10 }}>
             <MapView
@@ -220,8 +218,7 @@ export default function AddProjectMap({ route, navigation }) {
                 longitude: currLocation.longitude,
                 latitudeDelta: 0.007,
                 longitudeDelta: 0.007,
-              }}
-            >
+              }}>
               <Marker
                 key={0}
                 coordinate={{
@@ -263,11 +260,10 @@ export default function AddProjectMap({ route, navigation }) {
             {image && (
               <View
                 style={{
-                  justifyContent: "center",
-                  alignItems: "center",
+                  justifyContent: 'center',
+                  alignItems: 'center',
                   marginBottom: 5,
-                }}
-              >
+                }}>
                 <Image
                   source={{ uri: image.uri }}
                   style={{ ...styles.image, borderRadius: 5 }}
@@ -296,8 +292,7 @@ export default function AddProjectMap({ route, navigation }) {
         initialRegion={currLocation}
         onRegionChangeComplete={onRegionChangeComplete}
         onRegionChange={onPanDrag}
-        ref={mapRef}
-      >
+        ref={mapRef}>
         {pins.map((marker, index) => (
           <Marker
             key={marker.pindrop_id}
@@ -312,46 +307,41 @@ export default function AddProjectMap({ route, navigation }) {
       </MapView>
       <View
         style={{
-          position: "absolute", //use absolute position to show button on top of the map
-          top: "82%", //for center align
-          alignSelf: "center",
-        }}
-      >
+          position: 'absolute', //use absolute position to show button on top of the map
+          top: '82%', //for center align
+          alignSelf: 'center',
+        }}>
         <TouchableOpacity
           style={{
             ...styles.button,
           }}
-          onPress={() => addProjectPress()}
-        >
+          onPress={() => addProjectPress()}>
           <Text style={styles.text}>Start Project</Text>
         </TouchableOpacity>
       </View>
       <View
         style={{
-          position: "absolute", //use absolute position to show button on top of the map
-          top: "50%", //for center align
-          alignSelf: "center",
-        }}
-      >
+          position: 'absolute', //use absolute position to show button on top of the map
+          top: '50%', //for center align
+          alignSelf: 'center',
+        }}>
         <Pressable
           style={
             dragging ? styles.transparentButtonMarker : styles.buttonMarker
           }
-          disabled
-        >
+          disabled>
           <Text style={styles.textMarker}></Text>
         </Pressable>
       </View>
       <View
         style={{
-          position: "absolute", //use absolute position to show button on top of the map
-          top: "91.5%", //for center align
-          alignSelf: "center",
-        }}
-      >
+          position: 'absolute', //use absolute position to show button on top of the map
+          top: '91.5%', //for center align
+          alignSelf: 'center',
+        }}>
         <Pressable style={styles.addressButton} disabled>
           <Text style={styles.addressText}>
-            {dragging ? "Finding address..." : currAddress}
+            {dragging ? 'Finding address...' : currAddress}
           </Text>
         </Pressable>
       </View>
@@ -377,8 +367,8 @@ const styles = StyleSheet.create({
   button: {
     borderRadius: 50,
     borderWidth: 3,
-    borderColor: "#F2D8F9",
-    shadowColor: "#000",
+    borderColor: '#F2D8F9',
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 7,
@@ -389,11 +379,11 @@ const styles = StyleSheet.create({
     elevation: 14,
     paddingVertical: 10,
     paddingHorizontal: 10,
-    backgroundColor: "#F2D8F9",
+    backgroundColor: '#F2D8F9',
   },
   closeButton: {
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     width: BUTTON_SIZE + BORDER_WIDTH,
     height: BUTTON_SIZE + BORDER_WIDTH,
     borderWidth: BORDER_WIDTH,
@@ -402,50 +392,50 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 30,
     lineHeight: 30,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     letterSpacing: 0.25,
-    color: "#541d4d",
+    color: '#541d4d',
   },
   addressButton: {
     borderRadius: 5,
     borderWidth: 3,
-    borderColor: "#541d4d",
+    borderColor: '#541d4d',
 
     elevation: 14,
     paddingVertical: 10,
     paddingHorizontal: 10,
-    backgroundColor: "#F2D8F9",
+    backgroundColor: '#F2D8F9',
   },
   addressText: {
     fontSize: 24,
     lineHeight: 24,
 
     letterSpacing: 0.25,
-    color: "#541d4d",
+    color: '#541d4d',
   },
   buttonMarker: {
     borderRadius: 50,
     borderWidth: 2,
-    borderColor: "white",
+    borderColor: 'white',
     paddingVertical: 3,
     paddingHorizontal: 10,
-    backgroundColor: "darkblue",
+    backgroundColor: 'darkblue',
   },
   transparentButtonMarker: {
     borderRadius: 50,
     borderWidth: 2,
-    borderColor: "white",
+    borderColor: 'white',
     opacity: 0.5,
     paddingVertical: 2,
     paddingHorizontal: 9,
-    backgroundColor: "darkblue",
+    backgroundColor: 'darkblue',
   },
   textMarker: {
     fontSize: 24,
     lineHeight: 24,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     letterSpacing: 0.25,
-    color: "white",
+    color: 'white',
   },
   image: {
     width: 300,
@@ -455,15 +445,15 @@ const styles = StyleSheet.create({
 const stylesForm = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: 'center',
     paddingHorizontal: 0,
-    backgroundColor: "lightblue",
+    backgroundColor: 'lightblue',
   },
   form: {
-    backgroundColor: "#ffffff",
+    backgroundColor: '#ffffff',
     padding: 20,
     borderRadius: 10,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -475,18 +465,18 @@ const stylesForm = StyleSheet.create({
   label: {
     fontSize: 16,
     marginBottom: 5,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   input: {
     height: 40,
-    borderColor: "#ddd",
+    borderColor: '#ddd',
     borderWidth: 1,
     marginBottom: 15,
     padding: 10,
     borderRadius: 5,
   },
   descriptionInput: {
-    borderColor: "#ddd",
+    borderColor: '#ddd',
     borderWidth: 1,
     marginBottom: 15,
     padding: 10,
@@ -495,7 +485,7 @@ const stylesForm = StyleSheet.create({
     borderRadius: 5,
   },
   errorText: {
-    color: "red",
+    color: 'red',
     marginBottom: 10,
   },
 });
