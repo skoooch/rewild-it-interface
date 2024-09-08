@@ -154,6 +154,7 @@ export default function Discussion({ route, navigation }) {
     const project_res = await fetchDataGET(
       `project/${route.params.project_id}/`
     );
+    console.log(project_res.data.discussion_board);
     setRootId(
       project_res.data.discussion_board.root.discussion_board_message_id
     );
@@ -201,7 +202,7 @@ export default function Discussion({ route, navigation }) {
               arr3 = temp_comments.filter((ele) => ele.parent_id === item2.id);
               if (arr3.length) {
                 for (let item3 of arr3) {
-                  arr.push({ ...item2, type: 2 });
+                  arr.push({ ...item3, type: 2 });
                   arr4 = temp_comments.filter(
                     (ele) => ele.parent_id === item3.id
                   );
