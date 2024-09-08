@@ -32,7 +32,9 @@ export default function FollowingList() {
   const [goToProj, setGoToProj] = useState("");
   const [data, setData] = useState([]);
   const navigation = useNavigation();
+  const [refreshing, setRefreshing] = useState(false);
   const getProjects = async () => {
+    setRefreshing(true);
     let currUser = await SecureStore.getItemAsync("currUser");
     const user_object = await fetchDataGET(`user/${currUser}/`, {});
     setUserObj(user_object.data);
@@ -61,6 +63,7 @@ export default function FollowingList() {
       });
     }
     setData(temp_data);
+    setRefreshing(false);
   };
   useEffect(() => {
     if (isFocused) getProjects();
@@ -143,6 +146,8 @@ export default function FollowingList() {
       </Text>
       <FlatList
         data={data}
+        refreshing={refreshing}
+        onRefresh={getProjects}
         renderItem={({ item }) => (
           <Item
             title={item.title}
