@@ -16,61 +16,77 @@ import { fetchDataGET, fetchDataPOST, fetchDataLOGIN } from "./utils/helpers";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 export default function AuthScreen({ setIsLoggedIn }) {
   const [isSignup, setIsSignup] = useState(false);
+  const [errors, setErrors] = useState({});
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const validateForm = () => {
+    let errors = {};
+    if (!username) errors.username = "Username is required";
+    if (!password) errors.password = "Password is required";
+    if (isSignup) {
+      if (!firstName) errors.firstName = "First name is required";
+      if (!lastName) errors.lastName = "Last name is required";
+      if (!email) errors.email = "Email is required";
+    }
+    setErrors(errors);
+
+    return Object.keys(errors).length === 0;
+  };
   const handleAuth = async () => {
-    try {
-      if (isSignup) {
-        // TODO: Add signup logic
-        // Assume successful signup and obtain token
-        var create_response = await fetchDataPOST(`user`, {
-          first_name: firstName,
-          last_name: lastName,
+    if (validateForm()) {
+      try {
+        if (isSignup) {
+          // TODO: Add signup logic
+          // Assume successful signup and obtain token
+          var create_response = await fetchDataPOST(`user/`, {
+            first_name: firstName,
+            last_name: lastName,
+            username: username,
+            password: password,
+            email: email,
+          });
+          const token = "";
+          await SecureStore.setItemAsync("authToken", token);
+        }
+        var authResponse = await fetchDataLOGIN(`login`, {
           username: username,
           password: password,
-          email: email,
         });
-        const token = "";
-        await SecureStore.setItemAsync("authToken", token);
-      }
-      var authResponse = await fetchDataLOGIN(`login`, {
-        username: username,
-        password: password,
-      });
-      const token = authResponse.token;
-      const auth = getAuth();
-      // const FIREBASE_APP = initializeApp(firebaseConfig);
-      await signInWithCustomToken(auth, token)
-        .then(async (userCredential) => {
-          // Signed in
-          const user = userCredential.user;
-          const uid = user.uid;
-          await SecureStore.setItemAsync("currUser", uid);
-          await SecureStore.setItemAsync(
-            "accessToken",
-            userCredential._tokenResponse.idToken
-          );
-          await SecureStore.setItemAsync(
-            "refreshToken",
-            userCredential._tokenResponse.refreshToken
-          );
-          setIsLoggedIn(true);
-          // ...
-        })
-        .catch((error) => {
-          const errorCode = error.code;
-          const errorMessage = error.message;
-          Alert.alert(error);
-        });
+        const token = authResponse.token;
+        const auth = getAuth();
+        // const FIREBASE_APP = initializeApp(firebaseConfig);
+        await signInWithCustomToken(auth, token)
+          .then(async (userCredential) => {
+            // Signed in
+            const user = userCredential.user;
+            const uid = user.uid;
+            await SecureStore.setItemAsync("currUser", uid);
+            await SecureStore.setItemAsync(
+              "accessToken",
+              userCredential._tokenResponse.idToken
+            );
+            await SecureStore.setItemAsync(
+              "refreshToken",
+              userCredential._tokenResponse.refreshToken
+            );
+            setIsLoggedIn(true);
+            // ...
+          })
+          .catch((error) => {
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            Alert.alert(error);
+          });
 
-      // Assume successful login and obtain token
-      // const token = 'sample-login-token';
-    } catch (error) {
-      console.error("Error during authentication:", error);
-      Alert.alert("Error", "Authentication failed. Please try again.");
+        // Assume successful login and obtain token
+        // const token = 'sample-login-token';
+      } catch (error) {
+        console.error("Error during authentication:", error);
+        Alert.alert("Error", "Authentication failed. Please try again.");
+      }
     }
   };
   const toggleAuthMode = () => {
@@ -79,6 +95,7 @@ export default function AuthScreen({ setIsLoggedIn }) {
     setUsername("");
     setFirstName("");
     setLastName("");
+    setErrors({});
     setIsSignup((prevMode) => !prevMode);
   };
   return (
@@ -111,6 +128,9 @@ export default function AuthScreen({ setIsLoggedIn }) {
               onChangeText={setFirstName}
               autoCapitalize="none"
             />
+            {errors.firstName ? (
+              <Text style={styles.errorText}>{errors.firstName}</Text>
+            ) : null}
             <TextInput
               placeholderTextColor="#bbb"
               style={styles.input}
@@ -119,6 +139,9 @@ export default function AuthScreen({ setIsLoggedIn }) {
               onChangeText={setLastName}
               autoCapitalize="none"
             />
+            {errors.lastName ? (
+              <Text style={styles.errorText}>{errors.lastName}</Text>
+            ) : null}
             <TextInput
               placeholderTextColor="#bbb"
               style={styles.input}
@@ -128,6 +151,9 @@ export default function AuthScreen({ setIsLoggedIn }) {
               keyboardType="email-address"
               autoCapitalize="none"
             />
+            {errors.email ? (
+              <Text style={styles.errorText}>{errors.email}</Text>
+            ) : null}
             <TextInput
               placeholderTextColor="#bbb"
               style={styles.input}
@@ -138,15 +164,20 @@ export default function AuthScreen({ setIsLoggedIn }) {
             />
           </>
         ) : (
-          <TextInput
-            placeholderTextColor="#bbb"
-            style={styles.input}
-            placeholder="Username"
-            value={username}
-            onChangeText={setUsername}
-            autoCapitalize="none"
-          />
+          <>
+            <TextInput
+              placeholderTextColor="#bbb"
+              style={styles.input}
+              placeholder="Username"
+              value={username}
+              onChangeText={setUsername}
+              autoCapitalize="none"
+            />
+          </>
         )}
+        {errors.username ? (
+          <Text style={styles.errorText}>{errors.username}</Text>
+        ) : null}
         <TextInput
           placeholderTextColor="#bbb"
           style={styles.input}
@@ -155,6 +186,9 @@ export default function AuthScreen({ setIsLoggedIn }) {
           onChangeText={setPassword}
           secureTextEntry
         />
+        {errors.password ? (
+          <Text style={styles.errorText}>{errors.password}</Text>
+        ) : null}
         <Button title={isSignup ? "Sign up" : "Log in"} onPress={handleAuth} />
         <TouchableOpacity onPress={toggleAuthMode} style={styles.toggleButton}>
           <Text style={styles.toggleButtonText}>
@@ -199,5 +233,9 @@ const styles = StyleSheet.create({
   toggleButtonText: {
     color: "#007BFF",
     fontSize: 16,
+  },
+  errorText: {
+    color: "red",
+    marginBottom: 10,
   },
 });
