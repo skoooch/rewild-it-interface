@@ -50,7 +50,7 @@ export default function Map({ route, navigation }) {
   };
   useEffect(() => {
     if (isFocused) getPinDrops();
-  }, [isFocused]);
+  }, [isFocused, pins]);
 
   const mapRef = useRef();
 

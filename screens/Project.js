@@ -64,6 +64,7 @@ export default function Project({ route, navigation }) {
         );
         author = user_object.data.username;
       }
+
       const projectInfo = {
         id: infoUnformatted.timeline_post_id,
         prev_id: null,
@@ -79,7 +80,7 @@ export default function Project({ route, navigation }) {
 
       const first_timeline = {
         id: "0",
-        prev_id: infoUnformatted.timeline_post_id,
+        prev_id: "first",
         title: "Project Proposal",
         body: project_res.data.description,
         images: infoUnformatted.images,
@@ -224,7 +225,7 @@ export default function Project({ route, navigation }) {
                 paddingTop: 0,
               }}
             >
-              {`Created ${date} by ${author}`}
+              {`Created ${date}`}
             </Text>
           </View>
           <View style={styles.formContainer}>
@@ -297,7 +298,9 @@ export default function Project({ route, navigation }) {
                 color: "#000000",
               }}
             >
-              {`Posted ${date} by ${author}`}
+              {prev_id == "first"
+                ? `Posted ${date}`
+                : `Posted ${date} by ${author}`}
             </Text>
           </View>
           <View style={{ flex: 1 }}></View>
