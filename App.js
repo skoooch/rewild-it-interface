@@ -28,10 +28,8 @@ export default function App() {
   useEffect(() => {
     const checkLoginStatus = async () => {
       let refreshToken = SecureStore.getItem("refreshToken");
-      console.log(refreshToken);
       let response = await refreshIdToken(refreshToken);
       let userID = await SecureStore.getItem("currUser");
-      console.log(response);
 
       if (response != null) {
         await SecureStore.setItemAsync("accessToken", response.access_token);
@@ -49,8 +47,6 @@ export default function App() {
           // Signed in
           const user = userCredential.user;
           const uid = user.uid;
-          console.log(userCredential);
-          console.log(user);
 
           await SecureStore.setItemAsync("currUser", uid);
           await SecureStore.setItemAsync(
@@ -73,10 +69,8 @@ export default function App() {
         if (user) {
           SecureStore.setItemAsync("currUser", user.uid);
           setIsLoggedIn(true);
-          console.log("POOP A");
         } else {
           setIsLoggedIn(false);
-          console.log("POOP B");
         }
       });
     };

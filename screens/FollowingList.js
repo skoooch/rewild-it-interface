@@ -1,9 +1,9 @@
-import * as React from 'react';
-import { useState, useEffect } from 'react';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { fetchDataGET } from './utils/helpers';
-import { useNavigation, useIsFocused } from '@react-navigation/native';
-import * as SecureStore from 'expo-secure-store';
+import * as React from "react";
+import { useState, useEffect } from "react";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { fetchDataGET } from "./utils/helpers";
+import { useNavigation, useIsFocused } from "@react-navigation/native";
+import * as SecureStore from "expo-secure-store";
 import {
   Text,
   View,
@@ -17,7 +17,7 @@ import {
   TouchableHighlight,
   Modal,
   KeyboardAvoidingView,
-} from 'react-native';
+} from "react-native";
 const marker = {
   latitude: 43.65005,
   longitude: -79.401,
@@ -29,11 +29,11 @@ const BORDER_WIDTH = 1;
 export default function FollowingList() {
   const isFocused = useIsFocused();
   const [userObj, setUserObj] = useState({});
-  const [goToProj, setGoToProj] = useState('');
+  const [goToProj, setGoToProj] = useState("");
   const [data, setData] = useState([]);
   const navigation = useNavigation();
   const getProjects = async () => {
-    let currUser = await SecureStore.getItemAsync('currUser');
+    let currUser = await SecureStore.getItemAsync("currUser");
     const user_object = await fetchDataGET(`user/${currUser}/`, {});
     setUserObj(user_object.data);
     let temp_data = [];
@@ -41,10 +41,9 @@ export default function FollowingList() {
       const proj_response = await fetchDataGET(
         `project/${user_object.data.follows[i]}/`
       );
-      console.log(proj_response);
       const infoUnformatted = proj_response.data.timeline.posts[0];
-      const date = new Date(infoUnformatted.created_ts.split('T')[0]);
-      let author = '';
+      const date = new Date(infoUnformatted.created_ts.split("T")[0]);
+      let author = "";
       if (infoUnformatted.author_id) {
         const author_object = await fetchDataGET(
           `user/${infoUnformatted.author_id}/`
@@ -56,8 +55,8 @@ export default function FollowingList() {
         title: proj_response.data.name,
         description: proj_response.data.description,
         author: author,
-        date: `${date.toLocaleString('default', {
-          month: 'long',
+        date: `${date.toLocaleString("default", {
+          month: "long",
         })} ${date.getDay()}, ${date.getFullYear()}`,
       });
     }
@@ -68,14 +67,13 @@ export default function FollowingList() {
   }, [isFocused]);
   React.useEffect(() => {
     const navigateToProj = async () => {
-      let currUser = await SecureStore.getItemAsync('currUser');
-      if (goToProj != '') {
-        console.log(goToProj);
-        navigation.navigate('View Project', {
+      let currUser = await SecureStore.getItemAsync("currUser");
+      if (goToProj != "") {
+        navigation.navigate("View Project", {
           project_id: goToProj,
           currUser: currUser,
         });
-        setGoToProj('');
+        setGoToProj("");
       }
     };
     navigateToProj();
@@ -87,22 +85,24 @@ export default function FollowingList() {
           <View style={styles.itemHeader}>
             <View
               style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                minWidth: '100%',
-                flexDirection: 'row',
-              }}>
+                display: "flex",
+                justifyContent: "space-between",
+                minWidth: "100%",
+                flexDirection: "row",
+              }}
+            >
               <Text
                 style={{
                   fontSize: 12,
-                  backgroundColor: '#ffffff',
-                  color: '#606060',
-                }}>
+                  backgroundColor: "#ffffff",
+                  color: "#606060",
+                }}
+              >
                 {`Created ${date} by ${author}`}
               </Text>
               <Icon
                 reverse={true}
-                style={{ alignSelf: 'flex-start' }}
+                style={{ alignSelf: "flex-start" }}
                 name="dots-horizontal"
                 size={30}
                 color="b0b0b0"
@@ -116,8 +116,9 @@ export default function FollowingList() {
                 padding: 10,
                 paddingBottom: 0,
                 borderRadius: 5,
-                backgroundColor: '#ffffff',
-              }}>
+                backgroundColor: "#ffffff",
+              }}
+            >
               <Text numberOfLines={3} style={styles.description}>
                 {description}
               </Text>
@@ -128,15 +129,16 @@ export default function FollowingList() {
     </View>
   );
   return (
-    <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
+    <View style={{ flex: 1, backgroundColor: "#ffffff" }}>
       <Text
         style={{
           fontSize: 40,
-          textAlign: 'center',
+          textAlign: "center",
           paddingVertical: 20,
-          color: '#010101',
-          fontWeight: '900',
-        }}>
+          color: "#010101",
+          fontWeight: "900",
+        }}
+      >
         My Projects
       </Text>
       <FlatList
@@ -157,23 +159,23 @@ export default function FollowingList() {
 }
 const styles = StyleSheet.create({
   item: {
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     paddingVertical: 14,
     paddingHorizontal: 3,
     borderBottomWidth: 1,
-    borderColor: '#909090',
+    borderColor: "#909090",
   },
   itemHeader: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     paddingHorizontal: 10,
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
-    borderBottomColor: '#000000',
+    borderBottomColor: "#000000",
   },
   title: {
     fontSize: 25,
-    backgroundColor: 'ffffff',
+    backgroundColor: "ffffff",
   },
   description: {
     fontSize: 16,

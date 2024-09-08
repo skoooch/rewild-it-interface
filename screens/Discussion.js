@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { fetchDataGET, fetchDataPOST } from './utils/helpers';
-import * as SecureStore from 'expo-secure-store';
+import React, { useState, useEffect } from "react";
+import { fetchDataGET, fetchDataPOST } from "./utils/helpers";
+import * as SecureStore from "expo-secure-store";
 import {
   View,
   Text,
@@ -12,19 +12,19 @@ import {
   StyleSheet,
   FlatList,
   Keyboard,
-} from 'react-native';
-import { Icon } from 'react-native-elements';
+} from "react-native";
+import { Icon } from "react-native-elements";
 
 const comment_margin_left = 15;
 export default function Discussion({ route, navigation }) {
   const [marginTextBox, setMarginTextBox] = useState(5);
-  const [rootId, setRootId] = useState('');
+  const [rootId, setRootId] = useState("");
   const [discussionBoardObject, setDiscussionBoardObject] = useState(null);
   const [replyingTo, setReplyingTo] = useState(null);
-  const [replyingToName, setReplyingToName] = useState('');
+  const [replyingToName, setReplyingToName] = useState("");
   const [listComment, setListComment] = useState([]);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
   const inputRef = React.useRef(null);
   const renderItem = ({ item }) => {
     return <CommentItem comment={item} />;
@@ -40,9 +40,7 @@ export default function Discussion({ route, navigation }) {
     setReplyingToName(name);
   }
   const send = async () => {
-    console.log(message);
-    console.log(replyingTo);
-    const currUser = await SecureStore.getItemAsync('currUser');
+    const currUser = await SecureStore.getItemAsync("currUser");
     if (replyingTo)
       await fetchDataPOST(`discussion`, {
         parent_id: replyingTo,
@@ -55,7 +53,7 @@ export default function Discussion({ route, navigation }) {
         body: message,
         author_id: currUser,
       });
-    setMessage('');
+    setMessage("");
     setDiscussionBoardObject(null);
     setReplyingTo(null);
     Keyboard.dismiss();
@@ -75,11 +73,11 @@ export default function Discussion({ route, navigation }) {
   };
   useEffect(() => {
     const hideSubscription = Keyboard.addListener(
-      'keyboardDidHide',
+      "keyboardDidHide",
       handleKeyboardHide
     );
     const openSubscription = Keyboard.addListener(
-      'keyboardDidShow',
+      "keyboardDidShow",
       handleKeyboardShow
     );
   }, []);
@@ -93,7 +91,8 @@ export default function Discussion({ route, navigation }) {
               marginLeft: comment.type * comment_margin_left,
               marginTop: comment.type === 0 ? 10 : 2,
             },
-          ]}>
+          ]}
+        >
           <ProfilePic letter={comment.name[0]} />
           <View style={{ marginLeft: 10, flex: 1 }}>
             <Text style={styles.commentBy}>{comment.name}</Text>
@@ -103,14 +102,16 @@ export default function Discussion({ route, navigation }) {
         <View
           style={{
             marginLeft: comment.type * comment_margin_left + 30,
-            flexDirection: 'row',
-            alignItems: 'center',
-          }}>
+            flexDirection: "row",
+            alignItems: "center",
+          }}
+        >
           {false && (
             <>
               <TouchableHighlight
                 style={{ borderRadius: 10 }}
-                onPress={() => decrement(comment.id)}>
+                onPress={() => decrement(comment.id)}
+              >
                 <View>
                   <Icon name="angle-up" type="font-awesome" size={15} />
                 </View>
@@ -118,18 +119,20 @@ export default function Discussion({ route, navigation }) {
               <Text style={styles.votes}>{comment.votes}</Text>
               <TouchableHighlight
                 style={{ borderRadius: 10 }}
-                onPress={() => decrement(comment)}>
+                onPress={() => decrement(comment)}
+              >
                 <View>
                   <Icon name="angle-down" type="font-awesome" size={15} />
                 </View>
-              </TouchableHighlight>{' '}
+              </TouchableHighlight>{" "}
             </>
           )}
           {comment.type != 3 && (
             <TouchableHighlight
               style={{ marginLeft: 10, borderRadius: 10 }}
-              onPress={() => replyClick(comment.id, comment.name)}>
-              <View style={{ flexDirection: 'row' }}>
+              onPress={() => replyClick(comment.id, comment.name)}
+            >
+              <View style={{ flexDirection: "row" }}>
                 <Icon name="reply" type="font-awesome" size={15} />
                 <Text style={styles.votes}>Reply</Text>
               </View>
@@ -140,7 +143,7 @@ export default function Discussion({ route, navigation }) {
     );
   };
 
-  const ProfilePic = ({ letter = '' }) => {
+  const ProfilePic = ({ letter = "" }) => {
     return (
       <View style={styles.profileImg}>
         <Text style={styles.profileText}>{letter.toUpperCase()}</Text>
@@ -171,7 +174,7 @@ export default function Discussion({ route, navigation }) {
         id: comments[i].discussion_board_message_id,
         text: comments[i].body,
         parent_id: parent_id,
-        votes: '0',
+        votes: "0",
         name: name_response.data.username,
       });
       temp_comments = temp_comments.concat(child_comments);
@@ -212,7 +215,6 @@ export default function Discussion({ route, navigation }) {
           }
         }
       }
-      console.log(arr);
       setListComment(arr);
     }
   };
@@ -223,14 +225,15 @@ export default function Discussion({ route, navigation }) {
   return (
     <KeyboardAvoidingView
       behavior="padding"
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
-      style={{ flex: 1, backgroundColor: '#F0F0F0' }}>
+      keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
+      style={{ flex: 1, backgroundColor: "#F0F0F0" }}
+    >
       <View style={styles.container}>
         <FlatList
           style={{ marginTop: 0 }}
           data={listComment}
           renderItem={renderItem}
-          keyExtractor={(item, index) => '_cmt_item' + index}
+          keyExtractor={(item, index) => "_cmt_item" + index}
         />
       </View>
       <View
@@ -238,14 +241,15 @@ export default function Discussion({ route, navigation }) {
           paddingHorizontal: 10,
           paddingVertical: 10,
           borderTopWidth: 1,
-          borderTopColor: '#dddddd',
-        }}>
+          borderTopColor: "#dddddd",
+        }}
+      >
         {replyingTo == null ? (
           <View></View>
         ) : (
           <Text>Replying to {replyingToName}...</Text>
         )}
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
           <TextInput
             value={message}
             ref={inputRef}
@@ -254,7 +258,7 @@ export default function Discussion({ route, navigation }) {
               flex: 1,
               height: 40,
               borderWidth: 1,
-              borderColor: '#dddddd',
+              borderColor: "#dddddd",
               borderRadius: 20,
               paddingHorizontal: 10,
             }}
@@ -263,23 +267,25 @@ export default function Discussion({ route, navigation }) {
 
           <View
             style={{
-              flexDirection: 'row',
-              alignItems: 'center',
+              flexDirection: "row",
+              alignItems: "center",
               gap: 7,
               marginHorizontal: 8,
-            }}></View>
+            }}
+          ></View>
 
           <Pressable
             onPress={() => {
               send();
             }}
             style={{
-              backgroundColor: '#007bff',
+              backgroundColor: "#007bff",
               paddingVertical: 8,
               paddingHorizontal: 12,
               borderRadius: 20,
-            }}>
-            <Text style={{ color: 'white', fontWeight: 'bold' }}>Send</Text>
+            }}
+          >
+            <Text style={{ color: "white", fontWeight: "bold" }}>Send</Text>
           </Pressable>
         </View>
       </View>
@@ -290,43 +296,43 @@ export default function Discussion({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'snow',
+    backgroundColor: "snow",
     padding: 2,
   },
   text: {
     fontSize: 12,
   },
   commentItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 3,
     //  paddingHorizontal: 3,
   },
   commentBy: {
     fontSize: 12,
-    color: '#909090',
+    color: "#909090",
   },
   votes: {
     fontSize: 12,
     paddingHorizontal: 3,
-    color: '#909090',
+    color: "#909090",
   },
   commentText: {
     marginTop: 5,
     fontSize: 14,
-    color: 'black',
+    color: "black",
   },
   profileImg: {
     height: 30,
     width: 30,
     borderRadius: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'seagreen',
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "seagreen",
   },
   profileText: {
     fontSize: 10,
-    fontWeight: 'bold',
-    color: 'white',
+    fontWeight: "bold",
+    color: "white",
   },
 });
