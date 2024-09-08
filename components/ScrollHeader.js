@@ -17,20 +17,17 @@ export default function Header({
   const navigation = useNavigation();
   const clickFollow = async () => {
     const follow_change = !following;
-    console.log(user_id);
+
     if (follow_change) {
       const response = await fetchDataPOST(`project/${project_id}/follow`, {
         user_id: user_id,
       });
-      console.log(response);
     } else {
       await fetchDataDELETE(`project/${project_id}/follow`, {
         user_id: user_id,
       });
     }
-    console.log(following);
     setFollowing(follow_change);
-    console.log(following);
   };
   const width = Dimensions.get("window").width / 3;
   const viewDiscussion = () => {

@@ -131,15 +131,6 @@ export default function AddProjectMap({ route, navigation }) {
       console.log("Submitted", title, description);
       let currUser = await SecureStore.getItemAsync("currUser");
       try {
-        console.log({
-          EH: {
-            name: title,
-            description: description,
-            pindrop_latitude: currLocation.latitude,
-            pindrop_longitude: currLocation.longitude,
-            followers: [currUser],
-          },
-        });
         const response = await fetchDataPOST("project/", {
           name: title,
           description: description,
