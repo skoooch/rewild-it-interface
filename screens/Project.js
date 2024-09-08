@@ -77,7 +77,7 @@ export default function Project({ route, navigation }) {
         images: [],
         date: `${date.toLocaleString("default", {
           month: "long",
-        })} ${date.getDay()}, ${date.getFullYear()}`,
+        })} ${date.getDate()}, ${date.getFullYear()}`,
       };
 
       const first_timeline = {
@@ -89,7 +89,7 @@ export default function Project({ route, navigation }) {
         author: author,
         date: `${date.toLocaleString("default", {
           month: "long",
-        })} ${date.getDay()}, ${date.getFullYear()}`,
+        })} ${date.getDate()}, ${date.getFullYear()}`,
       };
       let timelines = [];
       for (const post of project_res.data.timeline.posts.slice(1)) {
@@ -98,12 +98,18 @@ export default function Project({ route, navigation }) {
           const user_object = await fetchDataGET(`user/${post.author_id}/`);
           author = user_object.data.username;
         }
+        console.log(date);
+        console.log(
+          `${date.toLocaleString("default", {
+            month: "long",
+          })} ${date.getDate()}, ${date.getFullYear()}`
+        );
         timelines.push({
           ...post,
           author: author,
           date: `${date.toLocaleString("default", {
             month: "long",
-          })} ${date.getDay()}, ${date.getFullYear()}`,
+          })} ${date.getDate()}, ${date.getFullYear()}`,
         });
       }
       const user_object = await fetchDataGET(`user/${currUser}/`);
@@ -290,21 +296,48 @@ export default function Project({ route, navigation }) {
       )}
       {prev_id != null && (
         <View style={styles.item}>
-          <View style={styles.itemHeader}>
-            <Text style={styles.title}>{title}</Text>
-            <Text
+          {prev_id == "first" ? (
+            <View style={styles.itemHeader}>
+              <Text style={styles.title}>{title}</Text>
+              <Text
+                style={{
+                  fontSize: 12,
+                  backgroundColor: "#94D6B3",
+                  paddingTop: 0,
+                  color: "#000000",
+                }}
+              >
+                {prev_id == "first"
+                  ? `Posted ${date}`
+                  : `Posted ${date} by ${author}`}
+              </Text>
+            </View>
+          ) : (
+            <View
               style={{
-                fontSize: 12,
-                backgroundColor: "#94D6B3",
-                paddingTop: 0,
-                color: "#000000",
+                bottomBorderColor: "#000000",
+                ...styles.itemHeaderLast,
+                backgroundColor: "#c0c0c0",
               }}
             >
-              {prev_id == "first"
-                ? `Posted ${date}`
-                : `Posted ${date} by ${author}`}
-            </Text>
-          </View>
+              <Text style={{ ...styles.title, backgroundColor: "#c0c0c0" }}>
+                {title}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 12,
+                  backgroundColor: "#c0c0c0",
+                  paddingTop: 0,
+                  color: "#000000",
+                }}
+              >
+                {prev_id == "first"
+                  ? `Posted ${date}`
+                  : `Posted ${date} by ${author}`}
+              </Text>
+            </View>
+          )}
+
           <View style={{ flex: 1 }}></View>
           {image_file && (
             <View
@@ -498,6 +531,14 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 10,
     borderBottomWidth: 5,
     borderBottomColor: "#45B37A",
+  },
+  itemHeaderLast: {
+    flex: 1,
+    padding: 10,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    borderBottomWidth: 5,
+    borderBottomColor: "#999999",
   },
   itemFirst: {
     backgroundColor: "#ffffff",
