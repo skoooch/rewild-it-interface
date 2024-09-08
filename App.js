@@ -1,4 +1,7 @@
 import { initializeApp, getApp, getApps } from "@firebase/app";
+import { LogBox } from "react-native";
+LogBox.ignoreLogs(["Warning: ..."]); // Ignore log notification by message
+LogBox.ignoreAllLogs(); //Ignore all log notifications
 // Import the functions you need from the SDKs you need
 import * as SecureStore from "expo-secure-store";
 import { onAuthStateChanged } from "@firebase/auth";

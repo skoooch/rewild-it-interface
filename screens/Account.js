@@ -1,40 +1,36 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
-import FIREBASE_APP from '../App.js'
-import { getAuth } from 'firebase/auth';
+import React, { useState } from "react";
+import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
+import FIREBASE_APP from "../App.js";
+import { getAuth } from "firebase/auth";
 import * as SecureStore from "expo-secure-store";
-import {fetchDataGET} from './utils/helpers'
-import RNRestart from 'react-native-restart'; // Import package from node modules
+import { fetchDataGET } from "./utils/helpers";
+import RNRestart from "react-native-restart"; // Import package from node modules
 
 const logOut = async () => {
-  await SecureStore.deleteItemAsync('currUser');
-  await SecureStore.deleteItemAsync('accessToken');
-  await SecureStore.deleteItemAsync('refreshToken');
+  await SecureStore.deleteItemAsync("currUser");
+  await SecureStore.deleteItemAsync("accessToken");
+  await SecureStore.deleteItemAsync("refreshToken");
   RNRestart.restart();
-  
-}
+};
 
 const AccountScreen = () => {
-
-  const [email, setEmail] = useState('user@example.com');
-  const [username, setUsername] = useState('username');
-  const [fullName, setFullName] = useState('John Doe');
+  const [email, setEmail] = useState("user@example.com");
+  const [username, setUsername] = useState("username");
+  const [fullName, setFullName] = useState("John Doe");
   const [isEditing, setIsEditing] = useState(false);
 
   (async () => {
-     let currUser = await SecureStore.getItemAsync('currUser');
-     fetchDataGET(`user/${currUser}/`).then((res) => {
-
-        setEmail(res.data.email)
-        setUsername(res.data.username)
-        setFullName(res.data.first_name + " " + res.data.last_name)
-
-    })
-  })()
+    let currUser = await SecureStore.getItemAsync("currUser");
+    fetchDataGET(`user/${currUser}/`).then((res) => {
+      setEmail(res.data.email);
+      setUsername(res.data.username);
+      setFullName(res.data.first_name + " " + res.data.last_name);
+    });
+  })();
 
   const handleSave = () => {
     setIsEditing(false);
-    Alert.alert('Success', 'Your account information has been updated.');
+    Alert.alert("Success", "Your account information has been updated.");
     // Here you could add functionality to save the updated values to a server or local storage
   };
 
@@ -45,15 +41,16 @@ const AccountScreen = () => {
   return (
     <View style={styles.container}>
       <Text
-            style={{
-              fontSize: 40,
-              textAlign: 'center',
-              paddingVertical: 30,
-              color: '#010101',
-              fontWeight: '900',
-            }}>
-            {fullName}
-          </Text>
+        style={{
+          fontSize: 40,
+          textAlign: "center",
+          paddingVertical: 30,
+          color: "#010101",
+          fontWeight: "900",
+        }}
+      >
+        {fullName}
+      </Text>
       <View style={styles.row}>
         <Text style={styles.label}>Email:</Text>
         {isEditing ? (
@@ -83,12 +80,11 @@ const AccountScreen = () => {
         )}
       </View>
 
-      {isEditing ? (
-        <Button title="Save" onPress={handleSave} />
-      ) : (
-        <Button title="Edit Profile" onPress={handleEdit} />
-      )}
-              <Button title="Log out" style={{color: 'red', fontWeight: 'bold'}} onPress={logOut} />
+      <Button
+        title="Log out"
+        style={{ color: "red", fontWeight: "bold" }}
+        onPress={logOut}
+      />
     </View>
   );
 };
@@ -97,29 +93,29 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
   },
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 20,
   },
   label: {
     fontSize: 18,
-    color: '#333',
+    color: "#333",
     marginRight: 10,
   },
   value: {
     fontSize: 18,
-    color: '#666',
+    color: "#666",
   },
   input: {
     height: 40,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderWidth: 1,
     borderRadius: 5,
     paddingHorizontal: 10,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     flex: 1,
   },
 });
