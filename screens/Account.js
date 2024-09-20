@@ -14,9 +14,9 @@ const logOut = async () => {
 };
 
 const AccountScreen = () => {
-  const [email, setEmail] = useState("user@example.com");
-  const [username, setUsername] = useState("username");
-  const [fullName, setFullName] = useState("John Doe");
+  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [fullName, setFullName] = useState("");
   const [isEditing, setIsEditing] = useState(false);
 
   (async () => {
@@ -27,7 +27,7 @@ const AccountScreen = () => {
       setFullName(res.data.first_name + " " + res.data.last_name);
     });
   })();
-
+  
   const handleSave = () => {
     setIsEditing(false);
     Alert.alert("Success", "Your account information has been updated.");

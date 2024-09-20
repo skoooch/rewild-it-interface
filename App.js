@@ -81,11 +81,8 @@ export default function App() {
   }, []);
   return (
     <>
-      {isLoggedIn ? (
-        <TabNavigator />
-      ) : (
-        <AuthScreen setIsLoggedIn={setIsLoggedIn} />
-      )}
+      {isLoggedIn && <TabNavigator />}
+      {!isLoggedIn && <AuthScreen setIsLoggedIn={setIsLoggedIn}/>} 
     </>
   );
 }

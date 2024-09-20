@@ -106,7 +106,6 @@ export default function AddProjectMap({ route, navigation }) {
 
     if (!title) errors.title = "Title is required";
     if (!description) errors.description = "Description is required";
-
     setErrors(errors);
 
     return Object.keys(errors).length === 0;
@@ -159,18 +158,25 @@ export default function AddProjectMap({ route, navigation }) {
       }
     }
   };
-
+  const thing = async (coord) => {
+      const name = await mapRef.current?.addressForCoordinate(coord)
+      setCurrAddress(name.name);
+  } 
   useEffect(() => {
-    Geocoder.from(currLocation.latitude, currLocation.longitude)
-      .then((json) => {
-        var addressComponents = json.results[0].address_components;
-        setCurrAddress(
-          [addressComponents[0].long_name, addressComponents[1].long_name].join(
-            " "
-          )
-        );
+    thing({
+        latitude: currLocation.latitude,
+        longitude: currLocation.longitude,
       })
-      .catch((error) => console.warn(error));
+    // Geocoder.from(currLocation.latitude, currLocation.longitude)
+    //   .then((json) => {
+    //     var addressComponents = json.results[0].address_components;
+    //     setCurrAddress(
+    //       [addressComponents[0].long_name, addressComponents[1].long_name].join(
+    //         " "
+    //       )
+    //     );
+    //   })
+    //   .catch((error) => console.warn(error));
   }, [currLocation]);
 
   return (
@@ -278,6 +284,7 @@ export default function AddProjectMap({ route, navigation }) {
       </Modal>
       <MapView
         style={styles.map}
+        showsPointsOfInterest={false}
         initialRegion={currLocation}
         onRegionChangeComplete={onRegionChangeComplete}
         onRegionChange={onPanDrag}
@@ -336,7 +343,7 @@ export default function AddProjectMap({ route, navigation }) {
       >
         <Pressable style={styles.addressButton} disabled>
           <Text style={styles.addressText}>
-            {dragging ? "Finding address..." : currAddress}
+            {dragging ? "Finding location..." : currAddress}
           </Text>
         </Pressable>
       </View>

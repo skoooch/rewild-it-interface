@@ -11,6 +11,7 @@ const FIREBASE_API_KEY = 'AIzaSyAV9vA2i86EEGMHY-opLiKuNC_QLPLNPfg';
 
 export async function fetchDataPOST(route, body) {
   const token = await SecureStore.getItem('accessToken');
+  console.log(token)
   var myHeaders = new Headers();
   myHeaders.append('Content-Type', 'application/json');
   myHeaders.append('Authorization', `Bearer ${token}`);
@@ -19,6 +20,36 @@ export async function fetchDataPOST(route, body) {
 
   var requestOptions = {
     method: 'POST',
+    headers: myHeaders,
+    body: raw,
+    redirect: 'follow',
+  };
+
+  let res = await fetch(`${URI}${route}`, requestOptions);
+  if (!(199 < res.status && res.status < 300)) {
+    console.log(`${res.status} ${res.statusText}, Error`);
+    throw new Error(`${res.status} ${res.statusText}, Error:`);
+  }
+  try {
+    const resJson = await res.json();
+    return resJson;
+  } catch (e) {
+    const resText = await res.text();
+    return resText;
+  }
+}
+
+export async function fetchDataPATCH(route, body) {
+  const token = await SecureStore.getItem('accessToken');
+  console.log(token)
+  var myHeaders = new Headers();
+  myHeaders.append('Content-Type', 'application/json');
+  myHeaders.append('Authorization', `Bearer ${token}`);
+
+  var raw = JSON.stringify(body);
+
+  var requestOptions = {
+    method: 'PATCH',
     headers: myHeaders,
     body: raw,
     redirect: 'follow',
